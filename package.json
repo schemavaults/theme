@@ -1,0 +1,67 @@
+{
+  "name": "@schemavaults/theme",
+  "description": "TailwindCSS theme shared by different SchemaVaults applications",
+  "version": "0.21.0",
+  "private": false,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/schemavaults/theme.git"
+  },
+  "peerDependencies": {
+    "react-dom": "19.0.0",
+    "react": "19.0.0"
+  },
+  "dependencies": {
+    "tailwindcss-animate": "1.0.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "tsc-alias": "1.8.10",
+    "bun-types": "1.2.11",
+    "typescript": "5.8.2",
+    "ignore-loader": "0.1.2",
+    "tailwindcss": "3.4.17"
+  },
+  "scripts": {
+    "build:js": "tsc --project tsconfig.json && tsc-alias --project tsconfig.json",
+    "build:clean_test_map_files": "find ./dist -name \"*.test.js.map\" -type f -delete",
+    "build:clean_test_js_files": "find ./dist -name \"*.test.js\" -type f -delete",
+    "build:clean_test_declarations_files": "find ./dist -name \"*.test.d.ts\" -type f -delete",
+    "build:cleanup": "bun run build:clean_test_map_files && bun run build:clean_test_js_files && bun run build:clean_test_declarations_files",
+    "prebuild": "bun run clean",
+    "build": "bun run build:js",
+    "postbuild": "bun run build:cleanup",
+    "clean": "rm -rf ./dist",
+    "test": "NODE_ENV=test bun test"
+  },
+  "exports": {
+    "./globals.css": {
+      "import": "./globals.css",
+      "require": "./globals.css",
+      "node": "./globals.css",
+      "default": "./globals.css"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "node": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*",
+      "require": "./dist/*",
+      "import": "./dist/*",
+      "default": "./dist/*"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "bun@1.2.11"
+}

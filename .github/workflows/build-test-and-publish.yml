@@ -1,0 +1,29 @@
+name: Build, Test, & Publish '@schemavaults/theme' Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-and-publish:
+    name: "Build, test, & publish package"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.11
+      - name: Install dependencies with Bun
+        run: bun install
+      - name: Build package with Bun
+        run: bun run build
+      - name: Run package unit tests
+        run: bun run test
+      - name: Publish package to GitHub NPM registry
+        run: bun publish
+        env:
+          SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_USER: ${{ secrets.SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_USER }}
+          SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_TOKEN: ${{ secrets.SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_TOKEN }}
