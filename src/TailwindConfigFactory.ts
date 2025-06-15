@@ -3,6 +3,12 @@ import * as tailwindAnimatePlugin from "tailwindcss-animate";
 import { componentColors } from "./component_colors";
 import { brandColors } from "./brand_colors";
 import DefaultOrgScope from "./DefaultOrgScope"; // @schemavaults organization is default
+import {
+  getScreenBreakpoint,
+  listScreenBreakpoints,
+  ScreenBreakpointID,
+} from "./ScreenBreakpoints";
+import type { TailwindTheme } from "./TailwindTheme";
 type OsJoinFn = (
   path_segment: string,
   ...remaining_path_segments: string[]
@@ -29,7 +35,7 @@ export interface ISchemaVaultsTailwindConfigFactory {
   ) => TailwindConfig;
 }
 
-type TailwindConfigTheme = NonNullable<TailwindConfig["theme"]>;
+type TailwindConfigTheme = TailwindTheme;
 
 type ThemeExtension = NonNullable<TailwindConfigTheme["extend"]>;
 type ThemeValue = ThemeExtension[string];
@@ -84,7 +90,23 @@ export class SchemaVaultsTailwindConfigFactory
     return brandColors;
   }
 
+  protected get screenSizes(): Record<ScreenBreakpointID, `${number}px`> {
+    const breakpointIds: readonly ScreenBreakpointID[] =
+      listScreenBreakpoints();
+    const screenSizes: Map<ScreenBreakpointID, `${number}px`> = new Map();
+    for (const breakpoint of breakpointIds) {
+      const screenSize: number = getScreenBreakpoint(breakpoint);
+      screenSizes.set(breakpoint, `${screenSize}px`);
+    }
+    const output: { [k: string]: `${number}px` } = Object.fromEntries(
+      screenSizes.entries(),
+    );
+
+    return output as Record<ScreenBreakpointID, `${number}px`>;
+  }
+
   protected get themeExtension(): ThemeExtension {
+    const screens: Record<ScreenBreakpointID, `${number}px`> = this.screenSizes;
     const extend: ThemeExtension = {
       colors: {
         ...this.shadcnColors,
@@ -95,6 +117,7 @@ export class SchemaVaultsTailwindConfigFactory
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      screens,
     };
     return extend;
   }
