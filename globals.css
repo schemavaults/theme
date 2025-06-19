@@ -4,6 +4,9 @@
 
 @layer base {
     :root {
+        --schemavaults-brand-blue: #60a5fa;
+        --schemavaults-brand-red: #dc2626;
+
         --background: 0 0% 100%;
         --foreground: 222.2 84% 4.9%;
 
@@ -45,6 +48,9 @@
     }
 
     .dark {
+        --schemavaults-brand-blue: #60a5fa;
+        --schemavaults-brand-red: #dc2626;
+
         --background: 222.2 84% 4.9%;
         --foreground: 210 40% 98%;
 
