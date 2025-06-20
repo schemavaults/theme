@@ -22,6 +22,8 @@ export interface ISchemaVaultsTailwindConfigFactoryInitOptions {
   // Checks whether a path is a directory (e.g. lstatSync(file).isDirectory())
   isdir: (path: string) => boolean;
   scope?: string;
+  // A list of file extensions that should be considered/searched for TailwindCSS className usage. Defaults to ts/tsx/js/jsx
+  fileExtensions?: readonly string[];
 }
 
 export interface ISchemaVaultsTailwindConfigCreationOptions {
@@ -43,15 +45,24 @@ type ThemeValue = ThemeExtension[string];
 export class SchemaVaultsTailwindConfigFactory
   implements ISchemaVaultsTailwindConfigFactory
 {
-  private debug: boolean;
+  protected readonly debug: boolean;
 
-  private join: OsJoinFn;
+  protected readonly join: OsJoinFn;
 
-  private node_modules_path: string | undefined;
+  protected readonly node_modules_path: string | undefined;
 
-  private isdir: (path: string) => boolean;
+  protected readonly isdir: (path: string) => boolean;
 
-  private scope: string;
+  protected readonly scope: string;
+
+  protected static readonly defaultFileExtensionsToSearch = [
+    "js",
+    "jsx",
+    "ts",
+    "tsx",
+  ] as const satisfies readonly string[];
+
+  protected readonly fileExtensionsToIncludeInTailwindClassNamesSearch: readonly string[];
 
   public constructor(opts: ISchemaVaultsTailwindConfigFactoryInitOptions) {
     this.debug = opts?.debug ?? false;
@@ -70,6 +81,12 @@ export class SchemaVaultsTailwindConfigFactory
         "Don't pass the @ in the scope, we'll handle adding passing that!",
       );
     }
+
+    this.fileExtensionsToIncludeInTailwindClassNamesSearch = Array.isArray(
+      opts.fileExtensions,
+    )
+      ? opts.fileExtensions
+      : SchemaVaultsTailwindConfigFactory.defaultFileExtensionsToSearch;
 
     if (this.debug) {
       console.log(
@@ -154,10 +171,10 @@ export class SchemaVaultsTailwindConfigFactory
 
     const join: OsJoinFn = this.join;
     const node_modules_dir: string = this.resolveNodeModulesDirectoryPath();
-    const packagePath = join(node_modules_dir, "@schemavaults", package_name);
+    const packagePath = join(node_modules_dir, `@${scope}`, package_name);
     if (!this.isdir(packagePath)) {
       throw new Error(
-        `Failed to resolve path to package: '@schemavaults/${package_name}'!`,
+        `Failed to resolve path to package: '@${scope}/${package_name}'!`,
       );
     }
     return packagePath;
@@ -180,9 +197,11 @@ export class SchemaVaultsTailwindConfigFactory
 
     const scope: string = this.scope;
 
+    const defaultContentSearchPath = `./src/**/*.{${this.fileExtensionsToIncludeInTailwindClassNamesSearch.join(",")}}`;
+
     const content_input: readonly string[] = Array.isArray(opts?.content)
       ? opts.content
-      : (["./src/**/*.ts|tsx|js|jsx"] as const satisfies readonly string[]);
+      : ([defaultContentSearchPath] as const satisfies readonly string[]);
 
     if (content_input.length < 1) {
       throw new Error(
@@ -215,7 +234,7 @@ export class SchemaVaultsTailwindConfigFactory
 
             if (hasBuildSubdirectory) {
               content.push(
-                `${package_path}/${possible_build_dir}/**/*.js|ts|tsx|jsx`,
+                `${package_path}/${possible_build_dir}/**/*.{${this.fileExtensionsToIncludeInTailwindClassNamesSearch.join(",")}}`,
               );
             }
           },
