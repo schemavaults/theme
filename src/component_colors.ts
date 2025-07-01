@@ -21,6 +21,10 @@ export const componentColors: ThemeValue = {
     DEFAULT: "hsl(var(--destructive))",
     foreground: "hsl(var(--destructive-foreground))",
   },
+  warning: {
+    DEFAULT: "var(--warning)",
+    foreground: "var(--destructive-foreground)",
+  },
   muted: {
     DEFAULT: "hsl(var(--muted))",
     foreground: "hsl(var(--muted-foreground))",
