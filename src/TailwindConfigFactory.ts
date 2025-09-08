@@ -1,18 +1,20 @@
 import type { Config as TailwindConfig } from "tailwindcss";
-import * as tailwindAnimatePlugin from "tailwindcss-animate";
 import { componentColors } from "./component_colors";
 import { brandColors } from "./brand_colors";
 import DefaultOrgScope from "./DefaultOrgScope"; // @schemavaults organization is default
 import {
   getScreenBreakpoint,
   listScreenBreakpoints,
-  ScreenBreakpointID,
+  type ScreenBreakpointID,
 } from "./ScreenBreakpoints";
 import type { TailwindTheme } from "./TailwindTheme";
 type OsJoinFn = (
   path_segment: string,
   ...remaining_path_segments: string[]
 ) => string;
+
+// TailwindCSS Plugins:
+import tailwindAnimatePlugin from "@/plugins/tailwindcss-animate";
 
 export interface ISchemaVaultsTailwindConfigFactoryInitOptions {
   debug?: boolean;
@@ -95,6 +97,11 @@ export class SchemaVaultsTailwindConfigFactory
     }
   }
 
+  /**
+   * @description Load TailwindCSS plugins to use in theme configuration
+   * @returns Array of TailwindCSS plugins
+   * @see /plugins directory
+   */
   protected get plugins(): TailwindConfig["plugins"] {
     return [tailwindAnimatePlugin];
   }
@@ -167,6 +174,15 @@ export class SchemaVaultsTailwindConfigFactory
 
     const pkg_blob_parts = pkg_blob_string.split("/");
 
+    if (
+      pkg_blob_parts.length < 2 ||
+      !pkg_blob_parts[1] ||
+      typeof pkg_blob_parts[1] !== "string"
+    ) {
+      throw new TypeError(
+        "Failed to resolve package name from package blob string",
+      );
+    }
     const package_name: string = pkg_blob_parts[1];
 
     const join: OsJoinFn = this.join;

@@ -21,7 +21,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules"]
