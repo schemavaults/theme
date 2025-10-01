@@ -58,4 +58,12 @@ describe("SchemaVaultsTailwindConfigFactory", () => {
     });
     expect(typeof config === "object").toBeTrue();
   });
+
+  test("can create a config factory without any options", () => {
+    const factory = new SchemaVaultsTailwindConfigFactory();
+    const config = factory.createConfig({
+      content: ["./src/**/*.ts|tsx|js|jsx"],
+    });
+    expect(typeof config === "object").toBeTrue();
+  });
 });

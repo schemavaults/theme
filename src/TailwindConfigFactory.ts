@@ -12,17 +12,18 @@ type OsJoinFn = (
   path_segment: string,
   ...remaining_path_segments: string[]
 ) => string;
+import { lstatSync } from "fs";
 
 // TailwindCSS Plugins:
 import tailwindAnimatePlugin from "@/plugins/tailwindcss-animate";
 
 export interface ISchemaVaultsTailwindConfigFactoryInitOptions {
   debug?: boolean;
-  join: OsJoinFn;
+  join?: OsJoinFn;
   // Path (or fn that resolves to a path) to node_modules for application
-  node_modules: string | (() => string);
+  node_modules?: string | (() => string);
   // Checks whether a path is a directory (e.g. lstatSync(file).isDirectory())
-  isdir: (path: string) => boolean;
+  isdir?: (path: string) => boolean;
   scope?: string;
   // A list of file extensions that should be considered/searched for TailwindCSS className usage. Defaults to ts/tsx/js/jsx
   fileExtensions?: readonly string[];
@@ -66,18 +67,68 @@ export class SchemaVaultsTailwindConfigFactory
 
   protected readonly fileExtensionsToIncludeInTailwindClassNamesSearch: readonly string[];
 
-  public constructor(opts: ISchemaVaultsTailwindConfigFactoryInitOptions) {
+  private static defaultJoinImplementation(
+    path_segment: string,
+    ...remaining_path_segments: string[]
+  ): string {
+    const path_segments: readonly string[] = [
+      path_segment,
+      ...remaining_path_segments,
+    ];
+    return path_segments.join("/");
+  }
+
+  private static defaultIsDirImplementation(maybeDirPath: string): boolean {
+    return lstatSync(maybeDirPath).isDirectory();
+  }
+
+  private static getDefaultResolveNodeModulesDirectoryPathImplementation(
+    join: OsJoinFn,
+    isdir: (dir: string) => boolean,
+  ): () => string {
+    const cwd = process.cwd();
+
+    if (isdir(join(cwd, "node_modules"))) {
+      return (): string => join(cwd, "node_modules");
+    } else if (isdir(join(cwd, "..", "node_modules"))) {
+      return (): string => join(cwd, "..", "node_modules");
+    } else if (isdir(join(cwd, "..", "..", "node_modules"))) {
+      return () => join(cwd, "..", "..", "node_modules");
+    } else {
+      console.error(
+        "Failed to resolve path to 'node_modules' directory from SchemaVaultsTailwindConfigFactory!",
+      );
+      console.error(
+        "You can pass a custom resolver function to the config factory constructor to fix this!",
+      );
+      process.exit(1);
+    }
+  }
+
+  public constructor(opts?: ISchemaVaultsTailwindConfigFactoryInitOptions) {
     this.debug = opts?.debug ?? false;
     if (this.debug) {
       console.log("[SchemaVaultsTailwindConfigFactory] constructor()");
     }
-    this.join = opts.join;
+    this.join =
+      typeof opts?.join === "function"
+        ? opts.join
+        : SchemaVaultsTailwindConfigFactory.defaultJoinImplementation;
+    this.isdir =
+      typeof opts?.isdir === "function"
+        ? opts.isdir
+        : SchemaVaultsTailwindConfigFactory.defaultIsDirImplementation;
+
     this.node_modules_path =
-      typeof opts.node_modules === "string"
+      typeof opts?.node_modules === "string"
         ? opts.node_modules
-        : opts.node_modules();
-    this.isdir = opts.isdir;
-    this.scope = opts.scope ?? DefaultOrgScope;
+        : typeof opts?.node_modules === "function"
+          ? opts.node_modules()
+          : SchemaVaultsTailwindConfigFactory.getDefaultResolveNodeModulesDirectoryPathImplementation(
+              this.join,
+              this.isdir,
+            )();
+    this.scope = opts?.scope ?? DefaultOrgScope;
     if (this.scope.startsWith("@")) {
       throw new Error(
         "Don't pass the @ in the scope, we'll handle adding passing that!",
@@ -85,7 +136,7 @@ export class SchemaVaultsTailwindConfigFactory
     }
 
     this.fileExtensionsToIncludeInTailwindClassNamesSearch = Array.isArray(
-      opts.fileExtensions,
+      opts?.fileExtensions,
     )
       ? opts.fileExtensions
       : SchemaVaultsTailwindConfigFactory.defaultFileExtensionsToSearch;

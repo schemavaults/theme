@@ -11,12 +11,25 @@ Package containing code for building TailwindCSS themes that contain SchemaVault
 The generated TailwindCSS config sets colors based on CSS variables. It's important that `globals.css` is imported, so that these colors can be resolved. E.g. `var(--foreground)` and `var(--card)` become functional after this CSS import.
 
 ```javascript
-import "@schemavaults/theme/dist/globals.css"
+import "@schemavaults/theme/globals.css"
 ```
 
 ### Import and run the TailwindCSS Config Factory from your `tailwind.config.mjs` or `tailwind.config.ts`
 
-```javascript
+#### Simple Example
+```typescript
+import { SchemaVaultsTailwindConfigFactory } from "@schemavaults/theme";
+const config = new SchemaVaultsTailwindConfigFactory().createConfig({
+  content: [
+    "./src/**/*.tsx|jsx|js|ts",
+    "@schemavaults/ui", // resolved and converted to an absolute path to the schemavaults package in the node_modules folder
+  ],
+});
+export default config;
+```
+
+#### More complex example
+```typescript
 // Import the config factory
 import { SchemaVaultsTailwindConfigFactory } from "@schemavaults/theme";
 import { join } from "path";

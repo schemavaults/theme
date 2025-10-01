@@ -8,6 +8,9 @@ on:
 permissions:
   packages: write
 
+env:
+  BUN_VERSION: 1.2.22
+
 jobs:
   build-test-and-publish:
     name: "Build, test, & publish package"
@@ -18,7 +21,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.2.21
+          bun-version: ${{ env.BUN_VERSION }}
       - name: Install dependencies with Bun
         run: bun install
       - name: Build package with Bun
