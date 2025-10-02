@@ -1,7 +1,7 @@
 {
   "name": "@schemavaults/theme",
   "description": "TailwindCSS theme shared by different SchemaVaults applications",
-  "version": "0.22.9",
+  "version": "0.22.10",
   "private": false,
   "license": "UNLICENSED",
   "repository": {
@@ -43,6 +43,12 @@
       "node": "./globals.css",
       "default": "./globals.css"
     },
+    "./dist/globals.css": {
+      "import": "./globals.css",
+      "require": "./globals.css",
+      "node": "./globals.css",
+      "default": "./globals.css"
+    },
     "./ScreenBreakpoints": {
       "types": "./dist/ScreenBreakpoints.d.ts",
       "require": "./dist/ScreenBreakpoints.js",
@@ -56,6 +62,12 @@
       "import": "./dist/index.js"
     },
     "./*": {
+      "types": "./dist/*",
+      "require": "./dist/*",
+      "import": "./dist/*",
+      "default": "./dist/*"
+    },
+    "./dist/*": {
       "types": "./dist/*",
       "require": "./dist/*",
       "import": "./dist/*",

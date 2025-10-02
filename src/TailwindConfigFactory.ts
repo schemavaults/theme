@@ -294,8 +294,16 @@ export class SchemaVaultsTailwindConfigFactory
             try {
               hasBuildSubdirectory = this.isdir(buildSubdirPath);
             } catch (e: unknown) {
+              console.error(
+                "There was an error thrown by the isdir() function supplied to the SchemaVaultsTailwindConfigFactory instance:",
+                e,
+              );
+              console.error(
+                "The error occurred while checking if directory exists at path: ",
+                buildSubdirPath,
+              );
               throw new Error(
-                "There was an thrown by the isdir() function that you supplied the tailwind configuration factory!",
+                "Error using isdir() to check if there is a directory at path",
               );
             }
 
