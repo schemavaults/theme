@@ -12,7 +12,7 @@ type OsJoinFn = (
   path_segment: string,
   ...remaining_path_segments: string[]
 ) => string;
-import { lstatSync } from "fs";
+import { existsSync, lstatSync } from "fs";
 
 // TailwindCSS Plugins:
 import tailwindAnimatePlugin from "@/plugins/tailwindcss-animate";
@@ -79,6 +79,9 @@ export class SchemaVaultsTailwindConfigFactory
   }
 
   private static defaultIsDirImplementation(maybeDirPath: string): boolean {
+    if (!existsSync(maybeDirPath)) {
+      return false;
+    }
     return lstatSync(maybeDirPath).isDirectory();
   }
 
