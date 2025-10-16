@@ -1,7 +1,7 @@
 {
   "name": "@schemavaults/theme",
   "description": "TailwindCSS theme shared by different SchemaVaults applications",
-  "version": "0.22.16",
+  "version": "0.22.17",
   "private": false,
   "license": "UNLICENSED",
   "repository": {

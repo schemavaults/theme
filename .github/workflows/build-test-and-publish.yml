@@ -39,12 +39,10 @@ jobs:
         run: rm -rf .npmrc
       - name: Configure .npmrc to publish to NPMJS registry
         run: cp .npmrc.github .npmrc
-      - name: Print user for publishing to NPM
-        run: echo "Attempting to publish package as user $NPM_PACKAGE_PUBLISH_USER"
       - name: Publish package to NPMJS registry
         run: bun publish --registry=https://registry.npmjs.org
         env:
-          NPM_PACKAGE_PUBLISH_USER: ${{ vars.NPM_PACKAGE_PUBLISH_USER }}
+          NPM_PACKAGE_PUBLISH_USER: ${{ github.actor }}
           NPM_PACKAGE_PUBLISH_TOKEN: ${{ secrets.NPM_PACKAGE_PUBLISH_TOKEN }}
       - name: Delete .npmrc for NPMJS registry
         run: rm -rf .npmrc
