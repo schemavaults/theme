@@ -1,8 +1,10 @@
-# @schemavaults/theme
+# 🎨 @schemavaults/theme
 
-## About
+## About 🎨
 
-Package containing code for building TailwindCSS themes that contain SchemaVaults branding colors and shared styles.
+Package containing code for building opionated TailwindCSS themes/configurations that contain SchemaVaults branding colors and shared styles.
+
+To see the theme in action you can check out the [`@schemavaults/ui` preview site](https://ui.schemavaults.com) showcasing some styled React.js components and the features available in this theme.
 
 ## Usage
 
@@ -11,6 +13,7 @@ Package containing code for building TailwindCSS themes that contain SchemaVault
 The generated TailwindCSS config sets colors based on CSS variables. It's important that `globals.css` is imported, so that these colors can be resolved. E.g. `var(--foreground)` and `var(--card)` become functional after this CSS import.
 
 ```javascript
+// within App.jsx / layout.jsx
 import "@schemavaults/theme/globals.css"
 ```
 
@@ -18,6 +21,7 @@ import "@schemavaults/theme/globals.css"
 
 #### Simple Example
 ```typescript
+// tailwind.config.ts
 import { SchemaVaultsTailwindConfigFactory } from "@schemavaults/theme";
 const config = new SchemaVaultsTailwindConfigFactory().createConfig({
   content: [
@@ -30,6 +34,8 @@ export default config;
 
 #### More complex example
 ```typescript
+// tailwind.config.ts
+
 // Import the config factory
 import { SchemaVaultsTailwindConfigFactory } from "@schemavaults/theme";
 import { join } from "path";
@@ -88,7 +94,8 @@ export default config;
 
 You may wish to also dig deeper on the options passed to the factory / `createConfig` in order to customize the final Tailwind configuration generated. Notably, the `content` parameter to `createConfig`, if the code for styles to be generated from is not found within `./src/**/*.ts|tsx|js|jsx`!
 
-```javascript
+```typescript
+// tailwind.config.ts
 // ... initialize the factory somewhere
 
 // An example demonstrating customization of where Tailwind searches for classnames
