@@ -39,8 +39,18 @@ jobs:
         run: rm -rf .npmrc
       - name: Configure .npmrc to publish to NPMJS registry
         run: cp .npmrc.github .npmrc
+      - name: Print user for publishing to NPM
+        run: echo "Attempting to publish package as user $NPM_PACKAGE_PUBLISH_USER"
+      - name: Verify NPM_PACKAGE_PUBLISH_TOKEN is set
+        run: |
+          if [ -z "${{ secrets.NPM_PACKAGE_PUBLISH_TOKEN }}" ]; then
+            echo "Error: NPM_PACKAGE_PUBLISH_TOKEN not set. Aborting..."
+            exit 1
+          fi
       - name: Publish package to NPMJS registry
         run: bun publish --registry=https://registry.npmjs.org
         env:
           NPM_PACKAGE_PUBLISH_USER: ${{ env.NPM_PACKAGE_PUBLISH_USER }}
           NPM_PACKAGE_PUBLISH_TOKEN: ${{ secrets.NPM_PACKAGE_PUBLISH_TOKEN }}
+      - name: Delete .npmrc for NPMJS registry
+        run: rm -rf .npmrc

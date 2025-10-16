@@ -18,3 +18,9 @@ dist/**/*.test.js.map
 .github/
 
 preview/
+
+.npmrc
+.npmrc.github
+.npmrc.npmjs
+
+tsconfig.json
