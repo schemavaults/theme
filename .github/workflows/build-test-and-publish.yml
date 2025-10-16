@@ -44,7 +44,7 @@ jobs:
       - name: Publish package to NPMJS registry
         run: bun publish --registry=https://registry.npmjs.org
         env:
-          NPM_PACKAGE_PUBLISH_USER: ${{ env.NPM_PACKAGE_PUBLISH_USER }}
+          NPM_PACKAGE_PUBLISH_USER: ${{ vars.NPM_PACKAGE_PUBLISH_USER }}
           NPM_PACKAGE_PUBLISH_TOKEN: ${{ secrets.NPM_PACKAGE_PUBLISH_TOKEN }}
       - name: Delete .npmrc for NPMJS registry
         run: rm -rf .npmrc
