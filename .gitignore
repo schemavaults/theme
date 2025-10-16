@@ -190,3 +190,5 @@ vaults-firebase-admin-key.json
 .turbo/
 
 dist-cjs/
+
+.npmrc
