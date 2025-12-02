@@ -9,7 +9,7 @@ permissions:
   packages: write
 
 env:
-  BUN_VERSION: 1.2.22
+  BUN_VERSION: 1.3.3
 
 jobs:
   build-test-and-publish:

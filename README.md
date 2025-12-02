@@ -39,20 +39,7 @@ export default config;
 // Import the config factory
 import { SchemaVaultsTailwindConfigFactory } from "@schemavaults/theme";
 import { join } from "path";
-import { lstatSync, exists, type Stats } from "fs";
-
-function node_modules(): string {
-  const currentDirectory: string = import.meta.dirname;
-
-  let node_modules_path: string;
-  if (currentDirectory.endsWith("/src") || currentDirectory.endsWith("/dist")) {
-    node_modules_path = join(currentDirectory, "..", "node_modules");
-  } else {
-    node_modules_path = join(currentDirectory, "node_modules");
-  }
-
-  return node_modules_path;
-}
+import { lstatSync, existsSync, type Stats } from "fs";
 
 function isdir(path: string): boolean {
   if (!existsSync(path)) return false;
@@ -68,13 +55,8 @@ function isdir(path: string): boolean {
   return lstatResult.isDirectory();
 }
 
-if (!isdir(node_modules())) {
-  throw new Error("Failed to resolve node_modules/ directory for test!");
-}
-
 // Initialize the config factory
 const configFactory = new SchemaVaultsTailwindConfigFactory({
-  node_modules,
   isdir,
   join,
   scope: 'schemavaults'
