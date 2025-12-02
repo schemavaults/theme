@@ -38,27 +38,10 @@ export default config;
 
 // Import the config factory
 import { SchemaVaultsTailwindConfigFactory } from "@schemavaults/theme";
-import { join } from "path";
-import { lstatSync, existsSync, type Stats } from "fs";
 
-function isdir(path: string): boolean {
-  if (!existsSync(path)) return false;
-
-  let lstatResult: Stats;
-  try {
-    lstatResult = lstatSync(path);
-  } catch (e: unknown) {
-    throw new Error(
-      "Error running lstatSync for tailwind.config.ts isdir() function!",
-    );
-  }
-  return lstatResult.isDirectory();
-}
 
 // Initialize the config factory
 const configFactory = new SchemaVaultsTailwindConfigFactory({
-  isdir,
-  join,
   scope: 'schemavaults'
 });
 
@@ -67,7 +50,7 @@ const config = configFactory.createConfig({
   content: [
     "./src/**/*.tsx|jsx|js|ts",
     "./app/**/*.tsx|jsx|js|ts",
-    "@schemavaults/ui", // resolved and converted to an absolute path to the schemavaults package in the node_modules folder
+    "@schemavaults/ui", // resolved and converted to an absolute path to the schemavaults package in the node_modules folder. i.e. @schemavaults/ui => .../node_modules/@schemavaults/ui/dist/**/*.tsx|jsx|js|ts
     "@schemavaults/schema-ui",
   ],
 });
