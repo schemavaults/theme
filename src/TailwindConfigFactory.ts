@@ -16,17 +16,18 @@ import { existsSync, lstatSync } from "fs";
 
 // TailwindCSS Plugins:
 import tailwindAnimatePlugin from "@/plugins/tailwindcss-animate";
+import * as resolve from "resolve";
 
 export interface ISchemaVaultsTailwindConfigFactoryInitOptions {
   debug?: boolean;
   join?: OsJoinFn;
-  // Path (or fn that resolves to a path) to node_modules for application
-  node_modules?: string | (() => string);
   // Checks whether a path is a directory (e.g. lstatSync(file).isDirectory())
   isdir?: (path: string) => boolean;
   scope?: string;
   // A list of file extensions that should be considered/searched for TailwindCSS className usage. Defaults to ts/tsx/js/jsx
   fileExtensions?: readonly string[];
+  // Manually specify the project root directory, defaults to process.cwd()
+  project_root?: string;
 }
 
 export interface ISchemaVaultsTailwindConfigCreationOptions {
@@ -52,11 +53,11 @@ export class SchemaVaultsTailwindConfigFactory
 
   protected readonly join: OsJoinFn;
 
-  protected readonly node_modules_path: string | undefined;
-
   protected readonly isdir: (path: string) => boolean;
 
   protected readonly scope: string;
+
+  protected readonly project_root: string;
 
   protected static readonly defaultFileExtensionsToSearch = [
     "js",
@@ -85,29 +86,6 @@ export class SchemaVaultsTailwindConfigFactory
     return lstatSync(maybeDirPath).isDirectory();
   }
 
-  private static getDefaultResolveNodeModulesDirectoryPathImplementation(
-    join: OsJoinFn,
-    isdir: (dir: string) => boolean,
-  ): () => string {
-    const cwd = process.cwd();
-
-    if (isdir(join(cwd, "node_modules"))) {
-      return (): string => join(cwd, "node_modules");
-    } else if (isdir(join(cwd, "..", "node_modules"))) {
-      return (): string => join(cwd, "..", "node_modules");
-    } else if (isdir(join(cwd, "..", "..", "node_modules"))) {
-      return () => join(cwd, "..", "..", "node_modules");
-    } else {
-      console.error(
-        "Failed to resolve path to 'node_modules' directory from SchemaVaultsTailwindConfigFactory!",
-      );
-      console.error(
-        "You can pass a custom resolver function to the config factory constructor to fix this!",
-      );
-      process.exit(1);
-    }
-  }
-
   public constructor(opts?: ISchemaVaultsTailwindConfigFactoryInitOptions) {
     this.debug = opts?.debug ?? false;
     if (this.debug) {
@@ -122,15 +100,6 @@ export class SchemaVaultsTailwindConfigFactory
         ? opts.isdir
         : SchemaVaultsTailwindConfigFactory.defaultIsDirImplementation;
 
-    this.node_modules_path =
-      typeof opts?.node_modules === "string"
-        ? opts.node_modules
-        : typeof opts?.node_modules === "function"
-          ? opts.node_modules()
-          : SchemaVaultsTailwindConfigFactory.getDefaultResolveNodeModulesDirectoryPathImplementation(
-              this.join,
-              this.isdir,
-            )();
     this.scope = opts?.scope ?? DefaultOrgScope;
     if (this.scope.startsWith("@")) {
       throw new Error(
@@ -143,6 +112,8 @@ export class SchemaVaultsTailwindConfigFactory
     )
       ? opts.fileExtensions
       : SchemaVaultsTailwindConfigFactory.defaultFileExtensionsToSearch;
+
+    this.project_root = opts?.project_root ?? process.cwd();
 
     if (this.debug) {
       console.log(
@@ -200,25 +171,9 @@ export class SchemaVaultsTailwindConfigFactory
     return extend;
   }
 
-  protected resolveNodeModulesDirectoryPath(): string {
-    if (typeof this.node_modules_path === "string") {
-      return this.node_modules_path;
-    }
-    throw new Error("Failed to resolve path to node_modules/ directory!");
-  }
-
-  // Get the path to the node_modules/ directory
-  public get node_modules(): string {
-    const path = this.resolveNodeModulesDirectoryPath();
-    if (!this.isdir(path)) {
-      throw new Error(
-        "Expected result of node_modules getter to be the path to a directory!",
-      );
-    }
-    return path;
-  }
-
-  protected resolveSchemaVaultsPackagePath(pkg_blob_string: string): string {
+  protected resolveOrganizationScopedPackagePath(
+    pkg_blob_string: string,
+  ): string {
     const scope: string = this.scope;
     if (!pkg_blob_string.startsWith(`@${scope}/`)) {
       throw new Error(
@@ -239,15 +194,34 @@ export class SchemaVaultsTailwindConfigFactory
     }
     const package_name: string = pkg_blob_parts[1];
 
-    const join: OsJoinFn = this.join;
-    const node_modules_dir: string = this.resolveNodeModulesDirectoryPath();
-    const packagePath = join(node_modules_dir, `@${scope}`, package_name);
-    if (!this.isdir(packagePath)) {
+    const org_package_identifier: string = `@${scope}/${package_name}`;
+
+    let package_path: string;
+    try {
+      package_path = resolve.sync(org_package_identifier, {
+        basedir: this.project_root, // resolve from where tailwind.config.ts is running from
+      });
+      if (typeof package_path !== "string") {
+        throw new TypeError(
+          "Failed to resolve package path; result not a string!",
+        );
+      }
+      if (!this.isdir(package_path)) {
+        throw new Error(
+          `Expected there to be a directory for package '@${scope}/${package_name}' at path '${package_path}'!`,
+        );
+      }
+    } catch (e: unknown) {
+      console.error(
+        `Failed to resolve path to package '@${scope}/${package_name}':`,
+        e,
+      );
       throw new Error(
         `Failed to resolve path to package: '@${scope}/${package_name}'!`,
       );
     }
-    return packagePath;
+
+    return package_path;
   }
 
   private static possibleBuildDirectories: readonly string[] = [
@@ -285,7 +259,7 @@ export class SchemaVaultsTailwindConfigFactory
 
       if (content_path_input.startsWith(`@${scope}/`)) {
         const package_path: string =
-          this.resolveSchemaVaultsPackagePath(content_path_input);
+          this.resolveOrganizationScopedPackagePath(content_path_input);
 
         SchemaVaultsTailwindConfigFactory.possibleBuildDirectories.forEach(
           (possible_build_dir) => {
