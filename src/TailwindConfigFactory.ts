@@ -13,6 +13,7 @@ type OsJoinFn = (
   ...remaining_path_segments: string[]
 ) => string;
 import { existsSync, lstatSync } from "fs";
+import { normalize, join, dirname } from "path";
 
 // TailwindCSS Plugins:
 import tailwindAnimatePlugin from "@/plugins/tailwindcss-animate";
@@ -20,9 +21,6 @@ import * as resolve from "resolve";
 
 export interface ISchemaVaultsTailwindConfigFactoryInitOptions {
   debug?: boolean;
-  join?: OsJoinFn;
-  // Checks whether a path is a directory (e.g. lstatSync(file).isDirectory())
-  isdir?: (path: string) => boolean;
   scope?: string;
   // A list of file extensions that should be considered/searched for TailwindCSS className usage. Defaults to ts/tsx/js/jsx
   fileExtensions?: readonly string[];
@@ -54,6 +52,7 @@ export class SchemaVaultsTailwindConfigFactory
   protected readonly join: OsJoinFn;
 
   protected readonly isdir: (path: string) => boolean;
+  protected readonly isfile: (path: string) => boolean;
 
   protected readonly scope: string;
 
@@ -64,6 +63,7 @@ export class SchemaVaultsTailwindConfigFactory
     "jsx",
     "ts",
     "tsx",
+    "svelte",
   ] as const satisfies readonly string[];
 
   protected readonly fileExtensionsToIncludeInTailwindClassNamesSearch: readonly string[];
@@ -72,11 +72,7 @@ export class SchemaVaultsTailwindConfigFactory
     path_segment: string,
     ...remaining_path_segments: string[]
   ): string {
-    const path_segments: readonly string[] = [
-      path_segment,
-      ...remaining_path_segments,
-    ];
-    return path_segments.join("/");
+    return join(path_segment, ...remaining_path_segments);
   }
 
   private static defaultIsDirImplementation(maybeDirPath: string): boolean {
@@ -86,20 +82,21 @@ export class SchemaVaultsTailwindConfigFactory
     return lstatSync(maybeDirPath).isDirectory();
   }
 
+  private static defaultIsFileImplementation(maybeFilePath: string): boolean {
+    if (!existsSync(maybeFilePath)) {
+      return false;
+    }
+    return lstatSync(maybeFilePath).isFile();
+  }
+
   public constructor(opts?: ISchemaVaultsTailwindConfigFactoryInitOptions) {
     this.debug = opts?.debug ?? false;
     if (this.debug) {
       console.log("[SchemaVaultsTailwindConfigFactory] constructor()");
     }
-    this.join =
-      typeof opts?.join === "function"
-        ? opts.join
-        : SchemaVaultsTailwindConfigFactory.defaultJoinImplementation;
-    this.isdir =
-      typeof opts?.isdir === "function"
-        ? opts.isdir
-        : SchemaVaultsTailwindConfigFactory.defaultIsDirImplementation;
-
+    this.join = SchemaVaultsTailwindConfigFactory.defaultJoinImplementation;
+    this.isdir = SchemaVaultsTailwindConfigFactory.defaultIsDirImplementation;
+    this.isfile = SchemaVaultsTailwindConfigFactory.defaultIsFileImplementation;
     this.scope = opts?.scope ?? DefaultOrgScope;
     if (this.scope.startsWith("@")) {
       throw new Error(
@@ -171,17 +168,22 @@ export class SchemaVaultsTailwindConfigFactory
     return extend;
   }
 
+  /**
+   *
+   * @param org_scoped_package_identifier A string representing an organization-scoped package identifier. For example: @schemavaults/ui
+   * @returns The resolved path for the organization-scoped package. I.e. the path that contains the package.json file
+   */
   protected resolveOrganizationScopedPackagePath(
-    pkg_blob_string: string,
+    org_scoped_package_identifier: string,
   ): string {
     const scope: string = this.scope;
-    if (!pkg_blob_string.startsWith(`@${scope}/`)) {
+    if (!org_scoped_package_identifier.startsWith(`@${scope}/`)) {
       throw new Error(
         `This method should only be called if content path starts with @${scope}/...`,
       );
     }
 
-    const pkg_blob_parts = pkg_blob_string.split("/");
+    const pkg_blob_parts = org_scoped_package_identifier.split("/");
 
     if (
       pkg_blob_parts.length < 2 ||
@@ -206,6 +208,49 @@ export class SchemaVaultsTailwindConfigFactory
           "Failed to resolve package path; result not a string!",
         );
       }
+
+      // Helper function that checks if this is the root directory of a package
+      const isAPackageRootDir = (current_path: string): boolean => {
+        if (!this.isdir(current_path)) {
+          return false;
+        } else {
+          if (this.join(current_path, "package.json")) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      }; // end fn isAPackageRootDir()
+
+      // Package path should have been loaded-- but 'resolve' likely returns path to:
+      //  node_modules/@{org}/{pkg}/dist/index.js, not the package root directory
+      // We need to traverse upwards until we find the directory containing package.json
+      // Or, if we hit node_modules/ and haven't found package.json, throw an error
+
+      let current_path = package_path;
+      while (current_path !== "/" && current_path !== "") {
+        if (isAPackageRootDir(current_path)) {
+          break;
+        }
+
+        if (!existsSync(current_path)) {
+          throw new Error(
+            `Error resolving package root directory for '@${scope}/${package_name}'`,
+          );
+        }
+
+        if (this.isdir(current_path)) {
+          current_path = normalize(this.join(current_path, ".."));
+        } else if (this.isfile(current_path)) {
+          current_path = dirname(current_path);
+        } else {
+          throw new Error(
+            "Expected current path to be either a directory or a file!",
+          );
+        }
+      }
+      package_path = current_path;
+
       if (!this.isdir(package_path)) {
         throw new Error(
           `Expected there to be a directory for package '@${scope}/${package_name}' at path '${package_path}'!`,
@@ -218,6 +263,13 @@ export class SchemaVaultsTailwindConfigFactory
       );
       throw new Error(
         `Failed to resolve path to package: '@${scope}/${package_name}'!`,
+      );
+    }
+
+    if (this.debug) {
+      console.log(
+        `[SchemaVaultsTailwindConfigFactory] Resolved root directory of package '@${scope}/${package_name}' to directory: `,
+        package_path,
       );
     }
 
