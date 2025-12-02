@@ -214,7 +214,7 @@ export class SchemaVaultsTailwindConfigFactory
         if (!this.isdir(current_path)) {
           return false;
         } else {
-          if (join(current_path, "package.json")) {
+          if (existsSync(join(current_path, "package.json"))) {
             return true;
           } else {
             return false;
@@ -312,6 +312,12 @@ export class SchemaVaultsTailwindConfigFactory
       if (content_path_input.startsWith(`@${scope}/`)) {
         const package_path: string =
           this.resolveOrganizationScopedPackagePath(content_path_input);
+
+        if (package_path.startsWith("@")) {
+          throw new TypeError(
+            `Failed to resolve org-scoped package identifier into path for: '${content_path_input}'`,
+          );
+        }
 
         this.possibleBuildDirectories.forEach(
           (possible_build_dir: string): void => {
