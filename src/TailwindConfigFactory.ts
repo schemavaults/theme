@@ -8,10 +8,6 @@ import {
   type ScreenBreakpointID,
 } from "./ScreenBreakpoints";
 import type { TailwindTheme } from "./TailwindTheme";
-type OsJoinFn = (
-  path_segment: string,
-  ...remaining_path_segments: string[]
-) => string;
 import { existsSync, lstatSync } from "fs";
 import { normalize, join, dirname } from "path";
 
@@ -26,6 +22,10 @@ export interface ISchemaVaultsTailwindConfigFactoryInitOptions {
   fileExtensions?: readonly string[];
   // Manually specify the project root directory, defaults to process.cwd()
   project_root?: string;
+  // Build subdirectories
+  // (e.g. ['dist'] here, in combination with @schemavaults/ui in the 'content' array of createConfig(),
+  //  would search node_modules/@schemavaults/ui/dist for classNames)
+  buildSubdirectories?: readonly string[];
 }
 
 export interface ISchemaVaultsTailwindConfigCreationOptions {
@@ -49,8 +49,6 @@ export class SchemaVaultsTailwindConfigFactory
 {
   protected readonly debug: boolean;
 
-  protected readonly join: OsJoinFn;
-
   protected readonly isdir: (path: string) => boolean;
   protected readonly isfile: (path: string) => boolean;
 
@@ -66,14 +64,9 @@ export class SchemaVaultsTailwindConfigFactory
     "svelte",
   ] as const satisfies readonly string[];
 
-  protected readonly fileExtensionsToIncludeInTailwindClassNamesSearch: readonly string[];
+  protected readonly possibleBuildDirectories: readonly string[];
 
-  private static defaultJoinImplementation(
-    path_segment: string,
-    ...remaining_path_segments: string[]
-  ): string {
-    return join(path_segment, ...remaining_path_segments);
-  }
+  protected readonly fileExtensionsToIncludeInTailwindClassNamesSearch: readonly string[];
 
   private static defaultIsDirImplementation(maybeDirPath: string): boolean {
     if (!existsSync(maybeDirPath)) {
@@ -89,18 +82,21 @@ export class SchemaVaultsTailwindConfigFactory
     return lstatSync(maybeFilePath).isFile();
   }
 
+  private static prettyPrintItemList(items: readonly string[]): string {
+    return `${items.map((d) => `"${d}"`).join(", ")}`;
+  }
+
   public constructor(opts?: ISchemaVaultsTailwindConfigFactoryInitOptions) {
     this.debug = opts?.debug ?? false;
     if (this.debug) {
       console.log("[SchemaVaultsTailwindConfigFactory] constructor()");
     }
-    this.join = SchemaVaultsTailwindConfigFactory.defaultJoinImplementation;
     this.isdir = SchemaVaultsTailwindConfigFactory.defaultIsDirImplementation;
     this.isfile = SchemaVaultsTailwindConfigFactory.defaultIsFileImplementation;
     this.scope = opts?.scope ?? DefaultOrgScope;
     if (this.scope.startsWith("@")) {
-      throw new Error(
-        "Don't pass the @ in the scope, we'll handle adding passing that!",
+      throw new TypeError(
+        "Don't pass the @ in the 'scope', we'll handle adding passing that!",
       );
     }
 
@@ -111,6 +107,10 @@ export class SchemaVaultsTailwindConfigFactory
       : SchemaVaultsTailwindConfigFactory.defaultFileExtensionsToSearch;
 
     this.project_root = opts?.project_root ?? process.cwd();
+
+    this.possibleBuildDirectories = Array.isArray(opts?.buildSubdirectories)
+      ? opts.buildSubdirectories
+      : SchemaVaultsTailwindConfigFactory.defaultPossibleBuildDirectories;
 
     if (this.debug) {
       console.log(
@@ -214,7 +214,7 @@ export class SchemaVaultsTailwindConfigFactory
         if (!this.isdir(current_path)) {
           return false;
         } else {
-          if (this.join(current_path, "package.json")) {
+          if (join(current_path, "package.json")) {
             return true;
           } else {
             return false;
@@ -240,7 +240,7 @@ export class SchemaVaultsTailwindConfigFactory
         }
 
         if (this.isdir(current_path)) {
-          current_path = normalize(this.join(current_path, ".."));
+          current_path = normalize(join(current_path, ".."));
         } else if (this.isfile(current_path)) {
           current_path = dirname(current_path);
         } else {
@@ -276,7 +276,7 @@ export class SchemaVaultsTailwindConfigFactory
     return package_path;
   }
 
-  private static possibleBuildDirectories: readonly string[] = [
+  private static defaultPossibleBuildDirectories: readonly string[] = [
     "dist",
     "src",
     "build",
@@ -313,14 +313,20 @@ export class SchemaVaultsTailwindConfigFactory
         const package_path: string =
           this.resolveOrganizationScopedPackagePath(content_path_input);
 
-        SchemaVaultsTailwindConfigFactory.possibleBuildDirectories.forEach(
-          (possible_build_dir) => {
-            const buildSubdirPath: string = this.join(
+        this.possibleBuildDirectories.forEach(
+          (possible_build_dir: string): void => {
+            const buildSubdirPath: string = join(
               package_path,
               possible_build_dir,
             );
-            let hasBuildSubdirectory: boolean;
+            let hasBuildSubdirectory: boolean = false;
             try {
+              if (this.debug) {
+                console.log(
+                  `[SchemaVaultsTailwindConfigFactory] Checking if build subdirectory exists at path:`,
+                  buildSubdirPath,
+                );
+              }
               hasBuildSubdirectory = this.isdir(buildSubdirPath);
             } catch (e: unknown) {
               console.error(
@@ -337,9 +343,15 @@ export class SchemaVaultsTailwindConfigFactory
             }
 
             if (hasBuildSubdirectory) {
-              content.push(
-                `${package_path}/${possible_build_dir}/**/*.{${this.fileExtensionsToIncludeInTailwindClassNamesSearch.join(",")}}`,
-              );
+              const tailwindContentSearchPath: string = `${buildSubdirPath}/**/*.{${this.fileExtensionsToIncludeInTailwindClassNamesSearch.join(",")}}`;
+              content.push(tailwindContentSearchPath);
+              if (this.debug) {
+                console.log(
+                  `[SchemaVaultsTailwindConfigFactory] ` +
+                    `Found build subdirectory. Added TailwindCSS search blob:`,
+                  tailwindContentSearchPath,
+                );
+              }
             }
           },
         );
@@ -357,9 +369,7 @@ export class SchemaVaultsTailwindConfigFactory
         content_path_input.startsWith(`@${scope}/`)
       ) {
         console.warn(
-          `Did not find any known build directories (${SchemaVaultsTailwindConfigFactory.possibleBuildDirectories
-            .map((d) => `"${d}"`)
-            .join(", ")})!`,
+          `Did not find any known build subdirectories (searching subdirectories: ${SchemaVaultsTailwindConfigFactory.prettyPrintItemList(this.possibleBuildDirectories)}) within content path input '${content_path_input}'!`,
         );
       }
     });
@@ -370,7 +380,7 @@ export class SchemaVaultsTailwindConfigFactory
       );
     }
 
-    const plugins = this.plugins;
+    const plugins: TailwindConfig["plugins"] = this.plugins;
     const extend: ThemeExtension = this.themeExtension;
 
     const config = {
@@ -385,10 +395,11 @@ export class SchemaVaultsTailwindConfigFactory
       "Failed to load any 'content' search blobs to generate TailwindCSS classes for!",
     );
 
-    console.assert(
-      config.content.every((blob) => typeof blob === "string"),
-      "Received a non-string search blob for the 'content' field of the Tailwind configuration!",
-    );
+    if (!config.content.every((blob): boolean => typeof blob === "string")) {
+      throw new TypeError(
+        "Received a non-string search blob for the 'content' field of the Tailwind configuration!",
+      );
+    }
 
     if (this.debug) {
       console.log(
