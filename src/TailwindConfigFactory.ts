@@ -51,6 +51,7 @@ export class SchemaVaultsTailwindConfigFactory
 
   protected readonly isdir: (path: string) => boolean;
   protected readonly isfile: (path: string) => boolean;
+  protected readonly islink: (path: string) => boolean;
 
   protected readonly scope: string;
 
@@ -62,6 +63,7 @@ export class SchemaVaultsTailwindConfigFactory
     "ts",
     "tsx",
     "svelte",
+    "vue",
   ] as const satisfies readonly string[];
 
   protected readonly possibleBuildDirectories: readonly string[];
@@ -82,6 +84,15 @@ export class SchemaVaultsTailwindConfigFactory
     return lstatSync(maybeFilePath).isFile();
   }
 
+  private static defaultIsSysLinkImplementation(
+    maybeSysLinkPath: string,
+  ): boolean {
+    if (!existsSync(maybeSysLinkPath)) {
+      return false;
+    }
+    return lstatSync(maybeSysLinkPath).isSymbolicLink();
+  }
+
   private static prettyPrintItemList(items: readonly string[]): string {
     return `${items.map((d) => `"${d}"`).join(", ")}`;
   }
@@ -93,6 +104,8 @@ export class SchemaVaultsTailwindConfigFactory
     }
     this.isdir = SchemaVaultsTailwindConfigFactory.defaultIsDirImplementation;
     this.isfile = SchemaVaultsTailwindConfigFactory.defaultIsFileImplementation;
+    this.islink =
+      SchemaVaultsTailwindConfigFactory.defaultIsSysLinkImplementation;
     this.scope = opts?.scope ?? DefaultOrgScope;
     if (this.scope.startsWith("@")) {
       throw new TypeError(
@@ -244,6 +257,9 @@ export class SchemaVaultsTailwindConfigFactory
           continue;
         } else if (this.isfile(current_path)) {
           current_path = dirname(current_path);
+          continue;
+        } else if (this.islink(current_path)) {
+          current_path = normalize(join(current_path, ".."));
           continue;
         } else {
           throw new Error(
