@@ -8,7 +8,7 @@ import {
   type ScreenBreakpointID,
 } from "./ScreenBreakpoints";
 import type { TailwindTheme } from "./TailwindTheme";
-import { existsSync, lstatSync } from "fs";
+import { existsSync, lstatSync, readlinkSync } from "fs";
 import { normalize, join, dirname } from "path";
 
 // TailwindCSS Plugins:
@@ -241,7 +241,14 @@ export class SchemaVaultsTailwindConfigFactory
       // Or, if we hit node_modules/ and haven't found package.json, throw an error
 
       let current_path = package_path;
+      let MAX_UPWARDS_TRAVERSAL_ATTEMPTS = 10;
       while (current_path !== "/" && current_path !== "") {
+        if (MAX_UPWARDS_TRAVERSAL_ATTEMPTS === 0) {
+          throw new Error(
+            `Error resolving package root directory for '@${scope}/${package_name}'! Reached maximum traversal attempts.`,
+          );
+        }
+        MAX_UPWARDS_TRAVERSAL_ATTEMPTS--;
         if (isAPackageRootDir(current_path)) {
           break;
         }
@@ -259,7 +266,8 @@ export class SchemaVaultsTailwindConfigFactory
           current_path = dirname(current_path);
           continue;
         } else if (this.islink(current_path)) {
-          current_path = normalize(join(current_path, ".."));
+          const target_path: string = readlinkSync(current_path);
+          current_path = target_path;
           continue;
         } else {
           throw new Error(
