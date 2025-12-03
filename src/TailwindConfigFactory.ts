@@ -235,25 +235,27 @@ export class SchemaVaultsTailwindConfigFactory
 
         if (!existsSync(current_path)) {
           throw new Error(
-            `Error resolving package root directory for '@${scope}/${package_name}'`,
+            `Error resolving package root directory for '@${scope}/${package_name}'! Path '${current_path}' does not exist during upwards traversal.`,
           );
         }
 
         if (this.isdir(current_path)) {
           current_path = normalize(join(current_path, ".."));
+          continue;
         } else if (this.isfile(current_path)) {
           current_path = dirname(current_path);
+          continue;
         } else {
           throw new Error(
-            "Expected current path to be either a directory or a file!",
+            `Expected current path '${current_path}' to be either a directory or a file!`,
           );
         }
       }
       package_path = current_path;
 
-      if (!this.isdir(package_path)) {
+      if (!existsSync(package_path) || !this.isdir(package_path)) {
         throw new Error(
-          `Expected there to be a directory for package '@${scope}/${package_name}' at path '${package_path}'!`,
+          `Expected there to be a directory for package '@${scope}/${package_name}' at path '${package_path}'; there's not!`,
         );
       }
     } catch (e: unknown) {
