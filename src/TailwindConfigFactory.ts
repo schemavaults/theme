@@ -8,7 +8,7 @@ import {
   type ScreenBreakpointID,
 } from "./ScreenBreakpoints";
 import type { TailwindTheme } from "./TailwindTheme";
-import { existsSync, lstatSync, readlinkSync, realpathSync } from "fs";
+import { existsSync, statSync } from "fs";
 import { normalize, join, dirname } from "path";
 
 // TailwindCSS Plugins:
@@ -51,7 +51,6 @@ export class SchemaVaultsTailwindConfigFactory
 
   protected readonly isdir: (path: string) => boolean;
   protected readonly isfile: (path: string) => boolean;
-  protected readonly islink: (path: string) => boolean;
 
   protected readonly scope: string;
 
@@ -74,23 +73,14 @@ export class SchemaVaultsTailwindConfigFactory
     if (!existsSync(maybeDirPath)) {
       return false;
     }
-    return lstatSync(maybeDirPath).isDirectory();
+    return statSync(maybeDirPath).isDirectory();
   }
 
   private static defaultIsFileImplementation(maybeFilePath: string): boolean {
     if (!existsSync(maybeFilePath)) {
       return false;
     }
-    return lstatSync(maybeFilePath).isFile();
-  }
-
-  private static defaultIsSysLinkImplementation(
-    maybeSysLinkPath: string,
-  ): boolean {
-    if (!existsSync(maybeSysLinkPath)) {
-      return false;
-    }
-    return lstatSync(maybeSysLinkPath).isSymbolicLink();
+    return statSync(maybeFilePath).isFile();
   }
 
   private static prettyPrintItemList(items: readonly string[]): string {
@@ -104,8 +94,6 @@ export class SchemaVaultsTailwindConfigFactory
     }
     this.isdir = SchemaVaultsTailwindConfigFactory.defaultIsDirImplementation;
     this.isfile = SchemaVaultsTailwindConfigFactory.defaultIsFileImplementation;
-    this.islink =
-      SchemaVaultsTailwindConfigFactory.defaultIsSysLinkImplementation;
     this.scope = opts?.scope ?? DefaultOrgScope;
     if (this.scope.startsWith("@")) {
       throw new TypeError(
@@ -264,10 +252,6 @@ export class SchemaVaultsTailwindConfigFactory
           continue;
         } else if (this.isfile(current_path)) {
           current_path = dirname(current_path);
-          continue;
-        } else if (this.islink(current_path)) {
-          const target_path: string = realpathSync(current_path);
-          current_path = target_path;
           continue;
         } else {
           throw new Error(
