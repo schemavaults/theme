@@ -8,7 +8,7 @@ import {
   type ScreenBreakpointID,
 } from "./ScreenBreakpoints";
 import type { TailwindTheme } from "./TailwindTheme";
-import { existsSync, lstatSync, readlinkSync } from "fs";
+import { existsSync, lstatSync, readlinkSync, realpathSync } from "fs";
 import { normalize, join, dirname } from "path";
 
 // TailwindCSS Plugins:
@@ -266,7 +266,7 @@ export class SchemaVaultsTailwindConfigFactory
           current_path = dirname(current_path);
           continue;
         } else if (this.islink(current_path)) {
-          const target_path: string = readlinkSync(current_path);
+          const target_path: string = realpathSync(current_path);
           current_path = target_path;
           continue;
         } else {
