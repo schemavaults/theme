@@ -3,7 +3,6 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "target": "ESNext",
-    "jsx": "react-jsx",
     "moduleResolution": "Bundler",
     "moduleDetection": "force",
     "noEmit": false,
@@ -19,11 +18,11 @@
     "types": ["bun-types"],
     "emitDeclarationOnly": false,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
     },
     "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
   },
   "include": ["./src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
 }

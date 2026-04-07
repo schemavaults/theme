@@ -1,29 +1,22 @@
 {
   "name": "@schemavaults/theme",
   "description": "TailwindCSS theme shared by different SchemaVaults applications",
-  "version": "0.25.5",
+  "version": "0.25.6",
   "private": false,
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "https://github.com/schemavaults/theme.git"
   },
-  "peerDependencies": {
-    "react-dom": "19.0.0",
-    "react": "19.0.0"
-  },
   "dependencies": {
     "tailwindcss-animate": "1.0.7",
     "resolve": "1.22.11"
   },
   "devDependencies": {
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0",
     "@types/resolve": "1.20.6",
     "tsc-alias": "1.8.16",
     "bun-types": "1.3.3",
     "typescript": "5.9.3",
-    "ignore-loader": "0.1.2",
     "tailwindcss": "3.4.17"
   },
   "scripts": {
