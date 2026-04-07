@@ -9,11 +9,12 @@ permissions:
   packages: write
 
 env:
-  BUN_VERSION: 1.3.3
+  BUN_VERSION: 1.3.11
+  NODE_VERSION: 24
 
 jobs:
-  build-test-and-publish:
-    name: "Build, test, & publish package"
+  Build:
+    name: "Build package"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,23 +27,78 @@ jobs:
         run: bun install
       - name: Build package with Bun
         run: bun run build
+      - name: Pack up package with Bun
+        run: bun pm pack --quiet --filename schemavaults-theme.tgz --gzip-level 9
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: package-tarball
+          path: schemavaults-theme.tgz
+          retention-days: 1
+
+  Test:
+    name: "Test package"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install dependencies with Bun
+        run: bun install
       - name: Run package unit tests
         run: bun run test
-      - name: Configure .npmrc to publish to GitHub NPM registry
-        run: cp .npmrc.github .npmrc
-      - name: Publish package to GitHub NPM registry
-        run: bun publish --registry=https://npm.pkg.github.com
-        env:
-          SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_USER: ${{ github.actor }}
-          SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Delete .npmrc for GitHub NPM registry
-        run: rm -rf .npmrc
+
+  Publish-To-Npmjs:
+    name: "Publish package to NPMJS registry"
+    runs-on: ubuntu-latest
+    needs:
+      - Build
+      - Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: "https://registry.npmjs.org"
+      - name: Download package artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: package-tarball
+          path: .
       - name: Configure .npmrc to publish to NPMJS registry
         run: cp .npmrc.npmjs .npmrc
       - name: Publish package to NPMJS registry
-        run: bun publish --registry=https://registry.npmjs.org
+        run: npm publish ./schemavaults-theme.tgz --provenance
         env:
           NPM_PACKAGE_PUBLISH_USER: ${{ github.actor }}
           NPM_PACKAGE_PUBLISH_TOKEN: ${{ secrets.NPM_PACKAGE_PUBLISH_TOKEN }}
-      - name: Delete .npmrc for NPMJS registry
-        run: rm -rf .npmrc
+
+  Publish-To-Github-Packages:
+    name: "Publish package to GitHub packages registry"
+    runs-on: ubuntu-latest
+    needs:
+      - Build
+      - Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Download package artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: package-tarball
+          path: .
+      - name: Configure .npmrc to publish to GitHub NPM registry
+        run: cp .npmrc.github .npmrc
+      - name: Publish package to GitHub NPM registry
+        run: bun publish ./schemavaults-theme.tgz --registry=https://npm.pkg.github.com
+        env:
+          SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_USER: ${{ github.actor }}
+          SCHEMAVAULTS_GITHUB_PACKAGE_REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
