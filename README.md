@@ -19,7 +19,17 @@ import "@schemavaults/theme/globals.css"
 
 ### Import and run the TailwindCSS Config Factory from your `tailwind.config.mjs` or `tailwind.config.ts`
 
-#### Simple Example
+#### Simple example using withSchemaVaultsTailwindTheme
+```typescript
+import { withSchemaVaultsTailwindTheme } from "@schemavaults/theme";
+const config = withSchemaVaultsTailwindTheme({
+  "./src/**/*.tsx|jsx|js|ts",
+  "@schemavaults/ui", // resolved and converted to an absolute path to the schemavaults package in the node_modules folder
+});
+export default config;
+````
+
+#### Simple example using SchemaVaultsTailwindConfigFactory
 ```typescript
 // tailwind.config.ts
 import { SchemaVaultsTailwindConfigFactory } from "@schemavaults/theme";
@@ -32,7 +42,7 @@ const config = new SchemaVaultsTailwindConfigFactory().createConfig({
 export default config;
 ```
 
-#### More complex example
+#### More complex example using SchemaVaultsTailwindConfigFactory
 ```typescript
 // tailwind.config.ts
 
