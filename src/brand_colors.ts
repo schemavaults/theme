@@ -13,5 +13,14 @@ export const brandColors: Record<SchemaVaultsBrandColor, string> = {
 export function getSchemaVaultsBrandColor(
   colorName: SchemaVaultsBrandColor,
 ): string {
-  return brandColors[colorName];
+  const brandColorCssValue: string = brandColors[colorName];
+  if (typeof brandColorCssValue !== "string") {
+    throw new Error(
+      `Failed to find CSS value for brand color! Are you using a valid key (${SCHEMAVAULTS_COLOR_KEYS.map((k) => `'${k}'`).join(", ")})?`,
+      {
+        cause: `Bad color name: '${colorName}'`,
+      },
+    );
+  }
+  return brandColorCssValue;
 }

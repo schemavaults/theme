@@ -1,7 +1,7 @@
 {
   "name": "@schemavaults/theme",
   "description": "TailwindCSS theme shared by different SchemaVaults applications",
-  "version": "0.26.0",
+  "version": "0.26.1",
   "private": false,
   "license": "UNLICENSED",
   "repository": {
@@ -50,6 +50,12 @@
       "require": "./dist/ScreenBreakpoints.js",
       "node": "./dist/ScreenBreakpoints.js",
       "import": "./dist/ScreenBreakpoints.js"
+    },
+    "./brand_colors": {
+      "types": "./dist/brand_colors.d.ts",
+      "require": "./dist/brand_colors.js",
+      "node": "./dist/brand_colors.js",
+      "import": "./dist/brand_colors.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
