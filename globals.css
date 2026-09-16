@@ -2,97 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Every design token below is declared as
+ *     --token: var(--sv-theme-<mode>-<token>, <default>);
+ * so an application can re-theme a deployment without replacing this file:
+ * set the `--sv-theme-light-*` / `--sv-theme-dark-*` (or, for tokens shared by
+ * both modes, `--sv-theme-*`) custom properties on the <html> element — as an
+ * inline style attribute, or from a <style> element — and the matching token
+ * picks the value up in that mode only. An override variable that is not set
+ * leaves the default in place.
+ *
+ * `createThemeOverrideStyle()` / `renderThemeOverrideCss()` from
+ * "@schemavaults/theme/tokens" build those declarations, and
+ * `THEME_TOKENS` lists every token, its format and its defaults; a test keeps
+ * that manifest and this file in step.
+ */
 @layer base {
     :root {
-        --schemavaults-brand-blue: #60a5fa;
-        --schemavaults-brand-red: #dc2626;
+        --schemavaults-brand-blue: var(--sv-theme-light-brand-blue, #60a5fa);
+        --schemavaults-brand-red: var(--sv-theme-light-brand-red, #dc2626);
 
-        --background: 0 0% 100%;
-        --foreground: 222.2 84% 4.9%;
+        --background: var(--sv-theme-light-background, 0 0% 100%);
+        --foreground: var(--sv-theme-light-foreground, 222.2 84% 4.9%);
 
-        --card: 0 0% 100%;
-        --card-foreground: 222.2 84% 4.9%;
+        --card: var(--sv-theme-light-card, 0 0% 100%);
+        --card-foreground: var(--sv-theme-light-card-foreground, 222.2 84% 4.9%);
 
-        --popover: 0 0% 100%;
-        --popover-foreground: 222.2 84% 4.9%;
+        --popover: var(--sv-theme-light-popover, 0 0% 100%);
+        --popover-foreground: var(--sv-theme-light-popover-foreground, 222.2 84% 4.9%);
 
-        --primary: 222.2 47.4% 11.2%;
-        --primary-foreground: 210 40% 98%;
+        --primary: var(--sv-theme-light-primary, 222.2 47.4% 11.2%);
+        --primary-foreground: var(--sv-theme-light-primary-foreground, 210 40% 98%);
 
-        --secondary: 210 40% 96.1%;
-        --secondary-foreground: 222.2 47.4% 11.2%;
+        --secondary: var(--sv-theme-light-secondary, 210 40% 96.1%);
+        --secondary-foreground: var(--sv-theme-light-secondary-foreground, 222.2 47.4% 11.2%);
 
-        --muted: 210 40% 96.1%;
-        --muted-foreground: 215.4 16.3% 46.9%;
+        --muted: var(--sv-theme-light-muted, 210 40% 96.1%);
+        --muted-foreground: var(--sv-theme-light-muted-foreground, 215.4 16.3% 46.9%);
 
-        --accent: 210 40% 96.1%;
-        --accent-foreground: 222.2 47.4% 11.2%;
+        --accent: var(--sv-theme-light-accent, 210 40% 96.1%);
+        --accent-foreground: var(--sv-theme-light-accent-foreground, 222.2 47.4% 11.2%);
 
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 210 40% 98%;
+        --destructive: var(--sv-theme-light-destructive, 0 84.2% 60.2%);
+        --destructive-foreground: var(--sv-theme-light-destructive-foreground, 210 40% 98%);
 
-        --warning: oklch(82% 0.189 84.429);
-        --warning-foreground: oklch(41% 0.112 45.904);
+        --warning: var(--sv-theme-light-warning, oklch(82% 0.189 84.429));
+        --warning-foreground: var(--sv-theme-light-warning-foreground, oklch(41% 0.112 45.904));
 
-        --border: 214.3 31.8% 91.4%;
-        --input: 214.3 31.8% 91.4%;
-        --ring: 222.2 84% 4.9%;
+        --border: var(--sv-theme-light-border, 214.3 31.8% 91.4%);
+        --input: var(--sv-theme-light-input, 214.3 31.8% 91.4%);
+        --ring: var(--sv-theme-light-ring, 222.2 84% 4.9%);
 
-        --radius: 0.5rem;
+        --radius: var(--sv-theme-radius, 0.5rem);
 
-        --sidebar: oklch(0.985 0 0);
-        --sidebar-foreground: oklch(0.145 0 0);
-        --sidebar-primary: oklch(0.205 0 0);
-        --sidebar-primary-foreground: oklch(0.985 0 0);
-        --sidebar-accent: oklch(0.97 0 0);
-        --sidebar-accent-foreground: oklch(0.205 0 0);
-        --sidebar-border: oklch(0.922 0 0);
-        --sidebar-ring: oklch(0.708 0 0);
+        --sidebar: var(--sv-theme-light-sidebar, oklch(0.985 0 0));
+        --sidebar-foreground: var(--sv-theme-light-sidebar-foreground, oklch(0.145 0 0));
+        --sidebar-primary: var(--sv-theme-light-sidebar-primary, oklch(0.205 0 0));
+        --sidebar-primary-foreground: var(--sv-theme-light-sidebar-primary-foreground, oklch(0.985 0 0));
+        --sidebar-accent: var(--sv-theme-light-sidebar-accent, oklch(0.97 0 0));
+        --sidebar-accent-foreground: var(--sv-theme-light-sidebar-accent-foreground, oklch(0.205 0 0));
+        --sidebar-border: var(--sv-theme-light-sidebar-border, oklch(0.922 0 0));
+        --sidebar-ring: var(--sv-theme-light-sidebar-ring, oklch(0.708 0 0));
     }
 
     .dark {
-        --schemavaults-brand-blue: #60a5fa;
-        --schemavaults-brand-red: #dc2626;
+        --schemavaults-brand-blue: var(--sv-theme-dark-brand-blue, #60a5fa);
+        --schemavaults-brand-red: var(--sv-theme-dark-brand-red, #dc2626);
 
-        --background: 222.2 84% 4.9%;
-        --foreground: 210 40% 98%;
+        --background: var(--sv-theme-dark-background, 222.2 84% 4.9%);
+        --foreground: var(--sv-theme-dark-foreground, 210 40% 98%);
 
-        --card: 222.2 84% 4.9%;
-        --card-foreground: 210 40% 98%;
+        --card: var(--sv-theme-dark-card, 222.2 84% 4.9%);
+        --card-foreground: var(--sv-theme-dark-card-foreground, 210 40% 98%);
 
-        --popover: 222.2 84% 4.9%;
-        --popover-foreground: 210 40% 98%;
+        --popover: var(--sv-theme-dark-popover, 222.2 84% 4.9%);
+        --popover-foreground: var(--sv-theme-dark-popover-foreground, 210 40% 98%);
 
-        --primary: 210 40% 98%;
-        --primary-foreground: 222.2 47.4% 11.2%;
+        --primary: var(--sv-theme-dark-primary, 210 40% 98%);
+        --primary-foreground: var(--sv-theme-dark-primary-foreground, 222.2 47.4% 11.2%);
 
-        --secondary: 217.2 32.6% 17.5%;
-        --secondary-foreground: 210 40% 98%;
+        --secondary: var(--sv-theme-dark-secondary, 217.2 32.6% 17.5%);
+        --secondary-foreground: var(--sv-theme-dark-secondary-foreground, 210 40% 98%);
 
-        --muted: 217.2 32.6% 17.5%;
-        --muted-foreground: 215 20.2% 65.1%;
+        --muted: var(--sv-theme-dark-muted, 217.2 32.6% 17.5%);
+        --muted-foreground: var(--sv-theme-dark-muted-foreground, 215 20.2% 65.1%);
 
-        --accent: 217.2 32.6% 17.5%;
-        --accent-foreground: 210 40% 98%;
+        --accent: var(--sv-theme-dark-accent, 217.2 32.6% 17.5%);
+        --accent-foreground: var(--sv-theme-dark-accent-foreground, 210 40% 98%);
 
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 210 40% 98%;
+        --destructive: var(--sv-theme-dark-destructive, 0 62.8% 30.6%);
+        --destructive-foreground: var(--sv-theme-dark-destructive-foreground, 210 40% 98%);
 
-        --warning: oklch(82% 0.189 84.429);
-        --warning-foreground: oklch(41% 0.112 45.904);
+        --warning: var(--sv-theme-dark-warning, oklch(82% 0.189 84.429));
+        --warning-foreground: var(--sv-theme-dark-warning-foreground, oklch(41% 0.112 45.904));
 
-        --border: 217.2 32.6% 17.5%;
-        --input: 217.2 32.6% 17.5%;
-        --ring: 212.7 26.8% 83.9%;
+        --border: var(--sv-theme-dark-border, 217.2 32.6% 17.5%);
+        --input: var(--sv-theme-dark-input, 217.2 32.6% 17.5%);
+        --ring: var(--sv-theme-dark-ring, 212.7 26.8% 83.9%);
 
-        --sidebar: oklch(0.205 0 0);
-        --sidebar-foreground: oklch(0.985 0 0);
-        --sidebar-primary: oklch(0.488 0.243 264.376);
-        --sidebar-primary-foreground: oklch(0.985 0 0);
-        --sidebar-accent: oklch(0.269 0 0);
-        --sidebar-accent-foreground: oklch(0.985 0 0);
-        --sidebar-border: oklch(1 0 0 / 10%);
-        --sidebar-ring: oklch(0.439 0 0);
+        --sidebar: var(--sv-theme-dark-sidebar, oklch(0.205 0 0));
+        --sidebar-foreground: var(--sv-theme-dark-sidebar-foreground, oklch(0.985 0 0));
+        --sidebar-primary: var(--sv-theme-dark-sidebar-primary, oklch(0.488 0.243 264.376));
+        --sidebar-primary-foreground: var(--sv-theme-dark-sidebar-primary-foreground, oklch(0.985 0 0));
+        --sidebar-accent: var(--sv-theme-dark-sidebar-accent, oklch(0.269 0 0));
+        --sidebar-accent-foreground: var(--sv-theme-dark-sidebar-accent-foreground, oklch(0.985 0 0));
+        --sidebar-border: var(--sv-theme-dark-sidebar-border, oklch(1 0 0 / 10%));
+        --sidebar-ring: var(--sv-theme-dark-sidebar-ring, oklch(0.439 0 0));
     }
 }
 

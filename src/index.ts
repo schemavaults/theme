@@ -14,3 +14,7 @@ export {
   isValidScreenBreakpoint,
 } from "./ScreenBreakpoints";
 export type { ScreenBreakpointID } from "./ScreenBreakpoints";
+
+// The token manifest and per-deployment override helpers; also available
+// without the Node.js-only config factory from "@schemavaults/theme/tokens".
+export * from "./tokens";

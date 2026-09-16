@@ -404,6 +404,12 @@ export class SchemaVaultsTailwindConfigFactory
       theme: { extend } satisfies TailwindConfigTheme,
       plugins,
       darkMode: "class",
+      // globals.css declares the dark-mode tokens under `.dark` inside
+      // `@layer base`, and Tailwind drops a layered rule whose class it
+      // never sees in `content`. An application that adds the class at
+      // runtime (a theme toggle, a `dark` set from a preference) has no
+      // literal "dark" in its source, so the block is kept explicitly.
+      safelist: ["dark"],
     } as const satisfies TailwindConfig;
 
     console.assert(

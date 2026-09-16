@@ -23,7 +23,7 @@ export const componentColors: ThemeValue = {
   },
   warning: {
     DEFAULT: "var(--warning)",
-    foreground: "var(--destructive-foreground)",
+    foreground: "var(--warning-foreground)",
   },
   muted: {
     DEFAULT: "hsl(var(--muted))",
