@@ -24,3 +24,13 @@ describe("SchemaVaultsTailwindConfigFactory", () => {
     expect(isValidTailwindConfig(config)).toBeTrue();
   });
 });
+
+describe("SchemaVaultsTailwindConfigFactory dark mode", () => {
+  test("keeps the .dark token block from globals.css in the compiled CSS", () => {
+    const config = new SchemaVaultsTailwindConfigFactory().createConfig({
+      content: ["./src/**/*.tsx"],
+    });
+    expect(config.darkMode).toBe("class");
+    expect(config.safelist).toContain("dark");
+  });
+});
