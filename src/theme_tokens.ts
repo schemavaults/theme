@@ -34,7 +34,8 @@ export type ThemeTokenGroup =
   | "states"
   | "outlines"
   | "shape"
-  | "sidebar";
+  | "sidebar"
+  | "charts";
 
 interface ThemeTokenBase {
   /** The CSS variable the token is read from, e.g. `--background`. */
@@ -95,6 +96,15 @@ const MODE_THEME_TOKEN_IDS = [
   "sidebar-accent-foreground",
   "sidebar-border",
   "sidebar-ring",
+  "chart-1",
+  "chart-2",
+  "chart-3",
+  "chart-4",
+  "chart-5",
+  "chart-6",
+  "chart-7",
+  "chart-8",
+  "chart-other",
 ] as const satisfies readonly string[];
 
 const SHARED_THEME_TOKEN_IDS = ["radius"] as const satisfies readonly string[];
@@ -145,6 +155,26 @@ function color(
     scopes: MODE_SCOPES,
     defaults: { light, dark },
   };
+}
+
+/** A categorical chart colour, `--chart-<n>`, exposed as the `chart-<n>` Tailwind colour. */
+function chart(
+  id: Extract<ModeThemeTokenID, `chart-${number}`>,
+  label: string,
+  hue: string,
+  light: string,
+  dark: string,
+): ModeThemeToken {
+  const slot: string = id.slice("chart-".length);
+  return color(
+    id,
+    `--${id}`,
+    "charts",
+    label,
+    `The ${hue} of the ${slot === "1" ? "first series (and of single-series charts)" : `series in colour slot ${slot}`}.`,
+    light,
+    dark,
+  );
 }
 
 /**
@@ -217,6 +247,28 @@ export const THEME_TOKENS: readonly ThemeToken[] = [
   color("sidebar-accent-foreground", "--sidebar-accent-foreground", "sidebar", "Sidebar accent text", "Text of a hovered navigation item.", "oklch(0.205 0 0)", "oklch(0.985 0 0)"),
   color("sidebar-border", "--sidebar-border", "sidebar", "Sidebar border", "The sidebar's edge and separators.", "oklch(0.922 0 0)", "oklch(1 0 0 / 10%)"),
   color("sidebar-ring", "--sidebar-ring", "sidebar", "Sidebar focus ring", "The outline around a focused sidebar item.", "oklch(0.708 0 0)", "oklch(0.439 0 0)"),
+
+  // Categorical chart colours: the data-viz reference palette, stepped
+  // separately for each mode and validated in this order against the card
+  // surfaces (see the README). Charts assign them to series in slot order,
+  // never cycled; a ninth series folds into `chart-other`.
+  chart("chart-1", "Chart series 1", "blue", "#2a78d6", "#3987e5"),
+  chart("chart-2", "Chart series 2", "orange", "#eb6834", "#d95926"),
+  chart("chart-3", "Chart series 3", "aqua", "#1baf7a", "#199e70"),
+  chart("chart-4", "Chart series 4", "yellow", "#eda100", "#c98500"),
+  chart("chart-5", "Chart series 5", "magenta", "#e87ba4", "#d55181"),
+  chart("chart-6", "Chart series 6", "green", "#008300", "#008300"),
+  chart("chart-7", "Chart series 7", "violet", "#4a3aa7", "#9085e9"),
+  chart("chart-8", "Chart series 8", "red", "#e34948", "#e66767"),
+  color(
+    "chart-other",
+    "--chart-other",
+    "charts",
+    "Chart other",
+    "The de-emphasis grey for a chart's folded tail (\"Other\"), overflow buckets and series past the palette.",
+    "#898781",
+    "#898781",
+  ),
 ];
 
 const THEME_TOKENS_BY_ID: ReadonlyMap<ThemeTokenID, ThemeToken> = new Map(

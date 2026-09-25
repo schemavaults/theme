@@ -8,6 +8,8 @@ export { default as withSchemaVaultsTailwindTheme } from "./withSchemaVaultsTail
 export type { SchemaVaultsBrandColor } from "./brand_colors";
 export { getSchemaVaultsBrandColor, brandColors } from "./brand_colors";
 
+export { chartColors, CHART_SERIES_SLOT_COUNT } from "./chart_colors";
+
 export {
   getScreenBreakpoint,
   listScreenBreakpoints,
