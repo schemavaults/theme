@@ -119,6 +119,37 @@ Environment variable names follow the token id: `<PREFIX>_LIGHT_<TOKEN>`, `<PREF
 
 The generated Tailwind config safelists the `dark` class so the `.dark` token block survives Tailwind's purge in applications that only add the class at runtime.
 
+### Chart colours
+
+`globals.css` defines a categorical palette for charts: `--chart-1` … `--chart-8` for series, in slot order, and `--chart-other` for the de-emphasis grey (a folded "Other" tail, an overflow bucket, a series past the palette). The Tailwind config exposes them as the `chart-1` … `chart-8` and `chart-other` colours (`fill-chart-2`, `stroke-chart-1`, `bg-chart-other/40`).
+
+| Slot | Hue | Light | Dark |
+| --- | --- | --- | --- |
+| 1 | Blue | `#2a78d6` | `#3987e5` |
+| 2 | Orange | `#eb6834` | `#d95926` |
+| 3 | Aqua | `#1baf7a` | `#199e70` |
+| 4 | Yellow | `#eda100` | `#c98500` |
+| 5 | Magenta | `#e87ba4` | `#d55181` |
+| 6 | Green | `#008300` | `#008300` |
+| 7 | Violet | `#4a3aa7` | `#9085e9` |
+| 8 | Red | `#e34948` | `#e66767` |
+| Other | Grey | `#898781` | `#898781` |
+
+The slots come from the data-viz reference palette and are validated in this order against the card surfaces (`#ffffff` light, `#020817` dark) with the data-viz `validate_palette.js`:
+
+- Light: every slot inside the lightness band and above the chroma floor; worst neighbouring pair ΔE 9.1 under colour-blindness simulation (target ≥ 8) and ΔE 19.6 for normal vision (floor 15). Aqua (2.82:1), yellow (2.17:1) and magenta (2.69:1) fall under 3:1 contrast on white, so a chart that uses them needs a legend or direct labels plus a table view.
+- Dark: worst neighbouring pair ΔE 8.4 (simulated) and ΔE 19.3 (normal vision); every slot clears 3:1.
+
+Rules for using them:
+
+- Assign slots in order and never cycle them. A ninth series folds into `chart-other` (or the chart becomes small multiples).
+- The **order is the colour-blindness safety**: the checks above hold for neighbouring slots. Charts where every pair can sit side by side (scatter plots, maps) are validated only for the first three slots (worst pair ΔE 9.2 light / 9.4 dark); no ordering of four or more passes, so colour at most three series there.
+- Colour follows the entity, not its position: filtering a series out must not repaint the others.
+- A single-series chart uses slot 1 for every mark.
+- These are identity colours. Status colours (`destructive`, `warning`, success) stay reserved for series that mean good or bad, and the brand blue is an explicit choice rather than slot 1 (at `#60a5fa` it is 2.54:1 on white and too light for dark mode).
+
+Like every other token, the chart colours can be re-themed per deployment (`--sv-theme-light-chart-1`, `THEME_DARK_CHART_OTHER`, …); re-run the validator on any replacement palette.
+
 ### CommonJS
 
 Note that currently CommonJS is not supported. I believe that I was struggling to get `tailwindcss-animate` working from CJS, then decided not to support it. Change your `tailwind.config.cjs` files to `tailwind.config.ts` or `tailwind.config.mjs` to use TypeScript or ES modules instead.

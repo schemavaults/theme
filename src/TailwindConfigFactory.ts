@@ -1,6 +1,7 @@
 import type { Config as TailwindConfig } from "tailwindcss";
 import { componentColors } from "./component_colors";
 import { brandColors } from "./brand_colors";
+import { chartColors } from "./chart_colors";
 import DefaultOrgScope from "./DefaultOrgScope"; // @schemavaults organization is default
 import {
   getScreenBreakpoint,
@@ -137,6 +138,10 @@ export class SchemaVaultsTailwindConfigFactory
     return brandColors;
   }
 
+  protected get chartColors(): ThemeValue {
+    return chartColors;
+  }
+
   protected get screenSizes(): Record<ScreenBreakpointID, `${number}px`> {
     const breakpointIds: readonly ScreenBreakpointID[] =
       listScreenBreakpoints();
@@ -158,6 +163,7 @@ export class SchemaVaultsTailwindConfigFactory
       colors: {
         ...this.shadcnColors,
         ...this.brandColors,
+        ...this.chartColors,
       },
       borderRadius: {
         lg: "var(--radius)",

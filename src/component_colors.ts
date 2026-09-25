@@ -24,7 +24,7 @@ type ThemeValue = ThemeExtension[string];
  * `<alpha-value>` is Tailwind's placeholder: it becomes the literal alpha for
  * a modifier like `/15`, and `var(--tw-bg-opacity, 1)` otherwise.
  */
-function colorWithAlphaChannel(cssVariable: `--${string}`): string {
+export function colorWithAlphaChannel(cssVariable: `--${string}`): string {
   return `color-mix(in oklab, var(${cssVariable}) calc(<alpha-value> * 100%), transparent)`;
 }
 

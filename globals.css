@@ -63,6 +63,17 @@
         --sidebar-accent-foreground: var(--sv-theme-light-sidebar-accent-foreground, oklch(0.205 0 0));
         --sidebar-border: var(--sv-theme-light-sidebar-border, oklch(0.922 0 0));
         --sidebar-ring: var(--sv-theme-light-sidebar-ring, oklch(0.708 0 0));
+
+        /* Categorical chart series, assigned in this order and never cycled. */
+        --chart-1: var(--sv-theme-light-chart-1, #2a78d6);
+        --chart-2: var(--sv-theme-light-chart-2, #eb6834);
+        --chart-3: var(--sv-theme-light-chart-3, #1baf7a);
+        --chart-4: var(--sv-theme-light-chart-4, #eda100);
+        --chart-5: var(--sv-theme-light-chart-5, #e87ba4);
+        --chart-6: var(--sv-theme-light-chart-6, #008300);
+        --chart-7: var(--sv-theme-light-chart-7, #4a3aa7);
+        --chart-8: var(--sv-theme-light-chart-8, #e34948);
+        --chart-other: var(--sv-theme-light-chart-other, #898781);
     }
 
     .dark {
@@ -108,6 +119,17 @@
         --sidebar-accent-foreground: var(--sv-theme-dark-sidebar-accent-foreground, oklch(0.985 0 0));
         --sidebar-border: var(--sv-theme-dark-sidebar-border, oklch(1 0 0 / 10%));
         --sidebar-ring: var(--sv-theme-dark-sidebar-ring, oklch(0.439 0 0));
+
+        /* Categorical chart series, assigned in this order and never cycled. */
+        --chart-1: var(--sv-theme-dark-chart-1, #3987e5);
+        --chart-2: var(--sv-theme-dark-chart-2, #d95926);
+        --chart-3: var(--sv-theme-dark-chart-3, #199e70);
+        --chart-4: var(--sv-theme-dark-chart-4, #c98500);
+        --chart-5: var(--sv-theme-dark-chart-5, #d55181);
+        --chart-6: var(--sv-theme-dark-chart-6, #008300);
+        --chart-7: var(--sv-theme-dark-chart-7, #9085e9);
+        --chart-8: var(--sv-theme-dark-chart-8, #e66767);
+        --chart-other: var(--sv-theme-dark-chart-other, #898781);
     }
 }
 
