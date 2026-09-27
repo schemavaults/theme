@@ -64,6 +64,10 @@
         --sidebar-border: var(--sv-theme-light-sidebar-border, oklch(0.922 0 0));
         --sidebar-ring: var(--sv-theme-light-sidebar-ring, oklch(0.708 0 0));
 
+        /* The gradient marking the active navigation item; follows the brand colours unless set. */
+        --sidebar-active-start: var(--sv-theme-light-sidebar-active-start, var(--schemavaults-brand-blue));
+        --sidebar-active-end: var(--sv-theme-light-sidebar-active-end, var(--schemavaults-brand-red));
+
         /* Categorical chart series, assigned in this order and never cycled. */
         --chart-1: var(--sv-theme-light-chart-1, #2a78d6);
         --chart-2: var(--sv-theme-light-chart-2, #eb6834);
@@ -119,6 +123,10 @@
         --sidebar-accent-foreground: var(--sv-theme-dark-sidebar-accent-foreground, oklch(0.985 0 0));
         --sidebar-border: var(--sv-theme-dark-sidebar-border, oklch(1 0 0 / 10%));
         --sidebar-ring: var(--sv-theme-dark-sidebar-ring, oklch(0.439 0 0));
+
+        /* The gradient marking the active navigation item; follows the brand colours unless set. */
+        --sidebar-active-start: var(--sv-theme-dark-sidebar-active-start, var(--schemavaults-brand-blue));
+        --sidebar-active-end: var(--sv-theme-dark-sidebar-active-end, var(--schemavaults-brand-red));
 
         /* Categorical chart series, assigned in this order and never cycled. */
         --chart-1: var(--sv-theme-dark-chart-1, #3987e5);

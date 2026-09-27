@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { listThemeTokens, themeTokenDefault } from "./theme_tokens";
+import { getThemeToken, listThemeTokens, themeTokenDefault, type ModeThemeToken } from "./theme_tokens";
 import { themeOverrideVariable } from "./theme_overrides";
 
 /**
@@ -48,6 +48,27 @@ describe("THEME_TOKENS", () => {
       }
     },
   );
+
+  test.each(
+    listThemeTokens()
+      .filter((token): token is ModeThemeToken => "defaultFrom" in token && token.defaultFrom !== undefined)
+      .map((token) => [token.id, token] as const),
+  )("'%s' falls back to the variable of the token it takes its default from", (_id, token) => {
+    const source = getThemeToken(token.defaultFrom!);
+    expect(source.id).not.toBe(token.id);
+    expect(source.scopes).toEqual(token.scopes);
+    for (const scope of token.scopes) {
+      expect(themeTokenDefault(token, scope)).toBe(`var(${source.cssVariable})`);
+    }
+  });
+
+  test("a default that references another variable is declared through defaultFrom", () => {
+    // Otherwise resolveThemeTokens would report the raw `var()` as the value.
+    for (const token of listThemeTokens()) {
+      if ("defaultFrom" in token && token.defaultFrom !== undefined) continue;
+      for (const scope of token.scopes) expect(themeTokenDefault(token, scope)).not.toContain("var(");
+    }
+  });
 
   test("globals.css declares no token the manifest lacks", () => {
     const known = new Set(listThemeTokens().map((t) => t.cssVariable));
