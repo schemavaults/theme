@@ -115,6 +115,8 @@ const style = createThemeOverrideStyle(overrides);
 
 Values are validated and normalised before they are emitted. Tokens whose format is `hsl-channels` (the shadcn/ui component colours the Tailwind theme wraps in `hsl()`) accept bare channels (`222.2 84% 4.9%`), a hex colour, or an opaque `rgb()`/`hsl()`, and are stored as channels; `css-color` tokens (the brand colours, `warning` and the sidebar) take any CSS colour; `radius` takes a CSS length. A value that could break the stylesheet or escape an attribute is refused with a reason you can show an administrator.
 
+A token can take its default from another token instead of a literal value (`defaultFrom` in the manifest): `globals.css` then falls back to that token's variable, so re-theming it re-colours both. `resolveThemeTokens()` reports such a token's `defaultValue` as the resolved value of the token it follows, that token's override included.
+
 Environment variable names follow the token id: `<PREFIX>_LIGHT_<TOKEN>`, `<PREFIX>_DARK_<TOKEN>` and `<PREFIX>_<TOKEN>` for shared tokens, upper-cased with hyphens as underscores (`sidebar-primary-foreground` → `THEME_DARK_SIDEBAR_PRIMARY_FOREGROUND`); `themeTokenEnvironmentVariable()` returns the name for a token and scope.
 
 The generated Tailwind config safelists the `dark` class so the `.dark` token block survives Tailwind's purge in applications that only add the class at runtime.
@@ -149,6 +151,26 @@ Rules for using them:
 - These are identity colours. Status colours (`destructive`, `warning`, success) stay reserved for series that mean good or bad, and the brand blue is an explicit choice rather than slot 1 (at `#60a5fa` it is 2.54:1 on white and too light for dark mode).
 
 Like every other token, the chart colours can be re-themed per deployment (`--sv-theme-light-chart-1`, `THEME_DARK_CHART_OTHER`, …); re-run the validator on any replacement palette.
+
+### Sidebar active gradient
+
+A two-colour gradient marks the navigation sidebar item for the current page (`@schemavaults/ui`'s `DashboardLayout` paints a wash across the row, a glowing bar down its left edge and a gradient label with it). Its colours are two tokens:
+
+| Token | Environment variables | Default (light and dark) |
+| --- | --- | --- |
+| `--sidebar-active-start` | `THEME_LIGHT_SIDEBAR_ACTIVE_START`, `THEME_DARK_SIDEBAR_ACTIVE_START` | `var(--schemavaults-brand-blue)` |
+| `--sidebar-active-end` | `THEME_LIGHT_SIDEBAR_ACTIVE_END`, `THEME_DARK_SIDEBAR_ACTIVE_END` | `var(--schemavaults-brand-red)` |
+
+```css
+:root { --sidebar-active-start: var(--sv-theme-light-sidebar-active-start, var(--schemavaults-brand-blue)); }
+.dark { --sidebar-active-start: var(--sv-theme-dark-sidebar-active-start, var(--schemavaults-brand-blue)); }
+```
+
+By default they follow the brand colours, so a deployment that re-themes `brand-blue` / `brand-red` gets a matching gradient without setting anything else. Set `--sv-theme-light-sidebar-active-start` (and friends), or the environment variables above, to give the gradient its own colours; each mode is independent, as for every other token.
+
+The Tailwind config exposes them as the `sidebar-active-start` and `sidebar-active-end` colours, so an application can reuse the gradient: `bg-gradient-to-r from-sidebar-active-start to-sidebar-active-end`, `bg-sidebar-active-start/20`.
+
+These are **accent colours, not text colours**. The UI paints the bar and the wash with them directly, and mixes each 60/40 with `--foreground` for the item's icon and label; with the default pair that mix stays at about 5.6:1 or better against the sidebar background in both modes. The raw colours are not safe for text on their own (the brand blue is 2.4:1 on the light sidebar), so avoid `text-sidebar-active-start` for body copy. When overriding them, pick saturated, mid-lightness colours: very light or very dark values wash the gradient out against one of the two modes' sidebars and pull the mixed label towards too little contrast.
 
 ### CommonJS
 

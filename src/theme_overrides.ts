@@ -176,7 +176,11 @@ export function renderThemeOverrideCss(overrides: ThemeOverrides, selector: stri
 /** The token's effective value in one scope, for a settings page. */
 export interface ResolvedThemeTokenValue {
   scope: ThemeTokenScope;
-  /** The stylesheet default. */
+  /**
+   * What the token renders as when it is not overridden itself: the
+   * stylesheet default, or — for a token with `defaultFrom` — the resolved
+   * value of the token it follows, that token's override included.
+   */
   defaultValue: string;
   /** The normalised override, or null when the default applies. */
   override: string | null;
@@ -200,14 +204,31 @@ export interface ResolvedThemeToken {
  */
 export function resolveThemeTokens(overrides: ThemeOverrides = {}): ResolvedThemeToken[] {
   const style = createThemeOverrideStyle(overrides);
+
+  const resolveValue = (
+    token: ThemeToken,
+    scope: ThemeTokenScope,
+    seen: readonly ThemeTokenID[],
+  ): ResolvedThemeTokenValue => {
+    const overrideVariable = themeOverrideVariable(token.id, scope);
+    const override = style[overrideVariable] ?? null;
+    const defaultFrom = "defaultFrom" in token ? token.defaultFrom : undefined;
+    let defaultValue: string;
+    if (defaultFrom === undefined) {
+      defaultValue = themeTokenDefault(token, scope) as string;
+    } else if (seen.includes(defaultFrom)) {
+      throw new Error(
+        `Theme token '${token.id}' takes its default from itself via ${[...seen, defaultFrom].join(" -> ")}!`,
+      );
+    } else {
+      defaultValue = resolveValue(getThemeToken(defaultFrom), scope, [...seen, defaultFrom]).value;
+    }
+    return { scope, defaultValue, override, value: override ?? defaultValue, overrideVariable };
+  };
+
   return listThemeTokens().map((token) => ({
     token,
-    values: token.scopes.map((scope): ResolvedThemeTokenValue => {
-      const overrideVariable = themeOverrideVariable(token.id, scope);
-      const defaultValue = themeTokenDefault(token, scope) as string;
-      const override = style[overrideVariable] ?? null;
-      return { scope, defaultValue, override, value: override ?? defaultValue, overrideVariable };
-    }),
+    values: token.scopes.map((scope): ResolvedThemeTokenValue => resolveValue(token, scope, [token.id])),
   }));
 }
 

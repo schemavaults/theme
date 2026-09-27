@@ -10,6 +10,8 @@ export { getSchemaVaultsBrandColor, brandColors } from "./brand_colors";
 
 export { chartColors, CHART_SERIES_SLOT_COUNT } from "./chart_colors";
 
+export { sidebarColors } from "./sidebar_colors";
+
 export {
   getScreenBreakpoint,
   listScreenBreakpoints,

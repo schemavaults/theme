@@ -52,7 +52,15 @@ interface ThemeTokenBase {
 export interface ModeThemeToken extends ThemeTokenBase {
   readonly id: ModeThemeTokenID;
   readonly scopes: readonly ["light", "dark"];
+  /** The fallback `globals.css` declares; `var(--other-token)` for a token with `defaultFrom`. */
   readonly defaults: { readonly light: string; readonly dark: string };
+  /**
+   * The token whose value this one takes, in each mode, until it is
+   * overridden itself: `globals.css` falls back to `var(<that token's
+   * variable>)`, so re-theming that token re-colours this one too.
+   * Undefined when the default is a literal value.
+   */
+  readonly defaultFrom?: ModeThemeTokenID;
 }
 
 /** A token declared once, for both modes. */
@@ -96,6 +104,8 @@ const MODE_THEME_TOKEN_IDS = [
   "sidebar-accent-foreground",
   "sidebar-border",
   "sidebar-ring",
+  "sidebar-active-start",
+  "sidebar-active-end",
   "chart-1",
   "chart-2",
   "chart-3",
@@ -157,6 +167,21 @@ function color(
   };
 }
 
+/**
+ * A colour whose default is another token's value in the same mode (see
+ * `ModeThemeToken.defaultFrom`), exposed as `--<id>`.
+ */
+function colorFrom(
+  id: ModeThemeTokenID,
+  group: ThemeTokenGroup,
+  label: string,
+  description: string,
+  source: ModeThemeToken,
+): ModeThemeToken {
+  const fallback: string = `var(${source.cssVariable})`;
+  return { ...color(id, `--${id}`, group, label, description, fallback, fallback), defaultFrom: source.id };
+}
+
 /** A categorical chart colour, `--chart-<n>`, exposed as the `chart-<n>` Tailwind colour. */
 function chart(
   id: Extract<ModeThemeTokenID, `chart-${number}`>,
@@ -177,30 +202,34 @@ function chart(
   );
 }
 
+const BRAND_BLUE: ModeThemeToken = color(
+  "brand-blue",
+  "--schemavaults-brand-blue",
+  "brand",
+  "Brand blue",
+  "The SchemaVaults brand blue, available as the `schemavaults-brand-blue` Tailwind colour.",
+  "#60a5fa",
+  "#60a5fa",
+);
+
+const BRAND_RED: ModeThemeToken = color(
+  "brand-red",
+  "--schemavaults-brand-red",
+  "brand",
+  "Brand red",
+  "The SchemaVaults brand red, available as the `schemavaults-brand-red` Tailwind colour.",
+  "#dc2626",
+  "#dc2626",
+);
+
 /**
  * Every token, in the order `globals.css` declares them. Tokens whose format
  * is `hsl-channels` are the shadcn/ui component colours the Tailwind theme
  * exposes as `bg-background`, `text-primary-foreground` and so on.
  */
 export const THEME_TOKENS: readonly ThemeToken[] = [
-  color(
-    "brand-blue",
-    "--schemavaults-brand-blue",
-    "brand",
-    "Brand blue",
-    "The SchemaVaults brand blue, available as the `schemavaults-brand-blue` Tailwind colour.",
-    "#60a5fa",
-    "#60a5fa",
-  ),
-  color(
-    "brand-red",
-    "--schemavaults-brand-red",
-    "brand",
-    "Brand red",
-    "The SchemaVaults brand red, available as the `schemavaults-brand-red` Tailwind colour.",
-    "#dc2626",
-    "#dc2626",
-  ),
+  BRAND_BLUE,
+  BRAND_RED,
 
   hsl("background", "page", "Page background", "The background of the page body.", "0 0% 100%", "222.2 84% 4.9%"),
   hsl("foreground", "page", "Page text", "The default text colour on the page background.", "222.2 84% 4.9%", "210 40% 98%"),
@@ -247,6 +276,17 @@ export const THEME_TOKENS: readonly ThemeToken[] = [
   color("sidebar-accent-foreground", "--sidebar-accent-foreground", "sidebar", "Sidebar accent text", "Text of a hovered navigation item.", "oklch(0.205 0 0)", "oklch(0.985 0 0)"),
   color("sidebar-border", "--sidebar-border", "sidebar", "Sidebar border", "The sidebar's edge and separators.", "oklch(0.922 0 0)", "oklch(1 0 0 / 10%)"),
   color("sidebar-ring", "--sidebar-ring", "sidebar", "Sidebar focus ring", "The outline around a focused sidebar item.", "oklch(0.708 0 0)", "oklch(0.439 0 0)"),
+  // The gradient marking the active navigation item: a wash across the row,
+  // a bar down its edge and the label. Accent colours, not text colours; they
+  // follow the brand colours unless a deployment sets them separately.
+  colorFrom(
+    "sidebar-active-start",
+    "sidebar",
+    "Sidebar active gradient start",
+    "First colour of the gradient marking the active nav item.",
+    BRAND_BLUE,
+  ),
+  colorFrom("sidebar-active-end", "sidebar", "Sidebar active gradient end", "Second colour of that gradient.", BRAND_RED),
 
   // Categorical chart colours: the data-viz reference palette, stepped
   // separately for each mode and validated in this order against the card
@@ -306,7 +346,11 @@ export function themeTokenHasScope(token: ThemeToken, scope: ThemeTokenScope): b
   return (token.scopes as readonly ThemeTokenScope[]).includes(scope);
 }
 
-/** The stylesheet's default for the token in a scope, or undefined when the scope does not apply. */
+/**
+ * The stylesheet's default for the token in a scope, or undefined when the
+ * scope does not apply. For a token with `defaultFrom` this is the `var()`
+ * reference `globals.css` falls back to; `resolveThemeTokens` resolves it.
+ */
 export function themeTokenDefault(token: ThemeToken, scope: ThemeTokenScope): string | undefined {
   return (token.defaults as Partial<Record<ThemeTokenScope, string>>)[scope];
 }
